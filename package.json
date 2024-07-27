@@ -1,0 +1,31 @@
+{
+  "name": "reviewer-lib",
+  "version": "1.0.0",
+  "description": "A library for code review using OpenAI API",
+  "main": "index.ts",
+  "keywords": [
+    "code",
+    "review",
+    "openai",
+    "api"
+  ],
+  "scripts": {
+    "build": "npx tsc",
+    "serve": "npx ts-node src/index.ts",
+    "dev": "nodemon src/index.ts",
+    "start": "node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Julia Kharlamova",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.12",
+    "nodemon": "^3.1.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "openai": "^4.53.2"
+  }
+}
