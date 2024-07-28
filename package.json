@@ -2,7 +2,7 @@
   "name": "reviewer-lib",
   "version": "1.0.0",
   "description": "A library for code review using OpenAI API",
-  "main": "index.ts",
+  "main": "dist/index.js",
   "keywords": [
     "code",
     "review",
