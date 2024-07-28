@@ -66,4 +66,4 @@ class Reviewer {
     }
 }
 
-module.exports = {Reviewer};
+export {Reviewer};
