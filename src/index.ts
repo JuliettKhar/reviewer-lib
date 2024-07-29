@@ -72,7 +72,7 @@ class Reviewer {
         `, async (err, stdout, stderr) => {
             if (err) {
                 console.error(`Error executing git diff: ${stderr}`);
-                return;
+                return new Error(String(err));
             }
 
             const feedback = await this.submitCode(stdout);
@@ -82,12 +82,29 @@ class Reviewer {
     }
 
     async generateDocumentation(code: string): Promise<string> {
-        const response = await this.client.completions.create({
-            prompt: `Generate documentation for the following code:\n\n${code}\n\nDocumentation:`,
-            model: this.model,
-            max_tokens: this.maxTokens,
-        });
-        return response.choices[0].text;
+        try {
+            const response = await this.client.completions.create({
+                prompt: `Generate documentation for the following code:\n\n${code}\n\nDocumentation:`,
+                model: this.model,
+                max_tokens: this.maxTokens,
+            });
+            return response.choices[0].text;
+        } catch (error: Error | any) {
+            throw new Error(`OpenAI API error: ${error.message}`);
+        }
+    }
+
+    async optimizeCode(code: string): Promise<string> {
+        try {
+            const response = await this.client.completions.create({
+                prompt: `Optimize the following code for performance and readability:\n\n${code}\n\nOptimized Code:`,
+                model: this.model,
+                max_tokens: this.maxTokens,
+            });
+            return response.choices[0].text;
+        } catch (error: Error | any) {
+            throw new Error(`OpenAI API error: ${error.message}`);
+        }
     }
 }
 
