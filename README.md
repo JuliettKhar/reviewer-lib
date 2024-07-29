@@ -12,13 +12,19 @@ npm install reviewer-lib
 new Reviewer(apiKey, model, maxTokens). Creates a new Reviewer instance.
 1. Params:
 - apiKey (String): Your OpenAI API key.
-- model (String): The model you want to use (default 'gpt-3.5-turbo').
+- model (String): The model you want to use (default 'gpt-3.5-turbo' changed in 1.1.0 on davinchi-002).
 - maxTokens (Number): The maximum number of tokens for the response (default 150).
 - code (String): The code to analyze. Returns Promise<String>: Suggestions for improving the code.
 2. Methods:
-- submitCode(code): Function, analyzes and provides recommendations for improving the code. Use '/engines/${model}/completions' endpoint.
-- submitCodeAssistanceMode(code): Function, analyzes and provides recommendations for improving the code. Use 'client.completions.create' instance method.
+- submitCode(code: string): Function, analyzes and provides recommendations for improving the code. Use '/engines/${model}/completions' endpoint.
+- submitCodeAssistanceMode(code: string): Function, analyzes and provides recommendations for improving the code. Use 'client.completions.create' instance method. (removed in 1.1.0)
 - getCurrentModels: Function, gets list of available AI models.
+- generateDocumentation(code: string): A function that automatically generates comments or documentation for code.
+- optimizeCode(code: string): A function for suggesting optimizations in code in terms of performance and readability.
+- generateTests(code: string): Function for automatic test generation based on provided code.
+- securityAnalysis(code: string): A function that checks code for potential vulnerabilities and suggests solutions.
+- codeStyleRecommendations(code: string): Add a feature that provides recommendations for improving code style by following established style guides.
+- historicalAnalysis(repoPath: string): A feature that analyzes the history of code changes and makes recommendations for improvements based on past changes.
 ## Usage
 ```
 import { Reviewer} from 'reviewer-lib';
