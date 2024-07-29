@@ -16,9 +16,7 @@ declare module 'reviewer' {
     constructor(options: ReviewerOptions);
     submitCode(code: string): Promise<string | undefined>;
     getCurrentModels(): Promise<IModel[]>;
-    constructor(options: ReviewerOptions);
-    reviewCode(code: string): Promise<string>;
-    suggestImprovements(code: string): Promise<string>;
+    codeReviewOnCI(code: string): Promise<string>;
     generateDocumentation(code: string): Promise<string>;
     optimizeCode(code: string): Promise<string>;
     generateTests(code: string): Promise<string>;
