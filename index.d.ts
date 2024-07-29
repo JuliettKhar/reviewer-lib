@@ -1,10 +1,4 @@
 declare module 'reviewer-lib' {
-  export interface ReviewerOptions {
-    apiKey: string;
-    model?: string;
-    maxTokens?: number;
-  }
-
   export interface IModel {
     id: string;
     object: string;
@@ -13,7 +7,7 @@ declare module 'reviewer-lib' {
 }
 
   export class Reviewer {
-    constructor(options: ReviewerOptions);
+    constructor(apiKey: string, model: string, maxTokens: number);
     submitCode(code: string): Promise<string | undefined>;
     getCurrentModels(): Promise<IModel[]>;
     codeReviewOnCI(): Promise<string>;

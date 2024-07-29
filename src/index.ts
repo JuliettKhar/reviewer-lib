@@ -28,10 +28,11 @@ class Reviewer {
 
     async submitCode(code: string): Promise<string | undefined> {
         try {
-            const response: any = await this.client.completions.create({
-                prompt: `Review the part of code:\n\n${code}\n\nProvide feedback how this part of code can be improved from optimal perspective:\n\nFeedback:`,
-                model: this.model,
-                max_tokens: this.maxTokens,
+            const response: any = await this.client.post(`/engines/${this.model}/completions`, {
+                body: {
+                    prompt: `Review the part of code:\n\n${code}\n\nProvide feedback how this part of code can be improved from optimal perspective:`,
+                    max_tokens: this.maxTokens,
+                },
             });
 
             return response.choices[0].text;
