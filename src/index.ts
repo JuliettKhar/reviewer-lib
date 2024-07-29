@@ -119,7 +119,19 @@ class Reviewer {
         } catch (error: Error | any) {
             throw new Error(`OpenAI API error: ${error.message}`);
         }
+    }
 
+    async securityAnalysis(code: string): Promise<string> {
+        try {
+            const response = await this.client.completions.create({
+                prompt: `Analyze the following code for potential security vulnerabilities and suggest fixes:\n\n${code}\n\nSecurity Analysis:`,
+                model: this.model,
+                max_tokens: this.maxTokens,
+            });
+            return response.choices[0].text;
+        } catch (error: Error | any) {
+            throw new Error(`OpenAI API error: ${error.message}`);
+        }
     }
 }
 
