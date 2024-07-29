@@ -13,6 +13,7 @@
     "build": "npx tsc",
     "serve": "npx ts-node src/index.ts",
     "dev": "nodemon src/index.ts",
+    "dev:2": "nodemon review-helper.ts",
     "start": "node dist/index.js",
     "publish": "npm run build && npm login",
     "test": "echo \"Error: no test specified\" && exit 1"
