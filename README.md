@@ -20,7 +20,8 @@ npm install reviewer-lib
 ## Usage
 Notes: Cheaper models give a lower quality result (Davinci, Curie, Ada, Babbage).
 To use less expensive models, OpenAI API requests should be directed to instance.submitCode.
-- [OpenAi prices](https://openai.com/api/pricing/https://openai.com/api/pricing/)
+- [OpenAI prices](https://openai.com/api/pricing/https://openai.com/api/pricing/)
+- [OpenAI model's deprecations](https://platform.openai.com/docs/deprecations)
 ```typescript
 import { Reviewer} from 'reviewer-lib';
 
