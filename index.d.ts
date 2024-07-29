@@ -1,4 +1,4 @@
-declare module 'reviewer' {
+declare module 'reviewer-lib' {
   export interface ReviewerOptions {
     apiKey: string;
     model?: string;
