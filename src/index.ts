@@ -42,6 +42,21 @@ class Reviewer {
         }
     }
 
+    async submitCodeAssistanceMode(code: string): Promise<string | undefined> {
+        try {
+            const response: any = await this.client.completions.create({
+                prompt: `Review the part of code:\n\n${code}\n\nProvide feedback how this part of code can be improved from optimal perspective:`,
+                model: this.model,
+                max_tokens: this.maxTokens,
+            });
+
+            return response.choices[0].text;
+        } catch (error: Error | any) {
+            console.info('Request available models by getCurrentModels()');
+            throw new Error(`OpenAI API error: ${error.message}`);
+        }
+    }
+
     async getCurrentModels(): Promise<IModel[]> {
         try {
             const {data}: { data: IModel[] } = await this.client.get('/models');
