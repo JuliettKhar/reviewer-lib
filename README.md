@@ -3,9 +3,13 @@ An automated code review tool that uses OpenAI to analyze and provide
 recommendations for code improvement and commenting in PR when received message from AI.
 
 [//]: # (![Build Status]&#40;https://img.shields.io/github/actions/workflow/status/your-username/reviewer-lib/ci.yml&#41;)
-
 [//]: # (![Coverage]&#40;https://img.shields.io/codecov/c/github/your-username/reviewer-lib&#41;)
-
+[//]: # (![Dependencies]&#40;https://img.shields.io/david/your-username/reviewer-lib&#41;)
+[//]: # (![Minified Size]&#40;https://img.shields.io/bundlephobia/min/reviewer-lib&#41;)
+[//]: # (![Downloads]&#40;https://img.shields.io/npm/dt/reviewer-lib&#41;)
+[//]: # (![Open Issues]&#40;https://img.shields.io/github/issues/your-username/reviewer-lib&#41;)
+[//]: # (![Forks]&#40;https://img.shields.io/github/forks/your-username/reviewer-lib&#41;)
+[//]: # (![Stars]&#40;https://img.shields.io/github/stars/your-username/reviewer-lib&#41;)
 ![NPM Version](https://img.shields.io/npm/v/reviewer-lib)
 
 
