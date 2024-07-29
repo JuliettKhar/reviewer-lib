@@ -2,7 +2,7 @@
   "name": "reviewer-lib",
   "version": "1.0.2",
   "description": "A library for code review using OpenAI API",
-  "main": "dist/index.js",
+  "main": "../test_reviewer/dist/index.js",
   "keywords": [
     "code",
     "review",
@@ -14,7 +14,7 @@
     "serve": "npx ts-node src/index.ts",
     "dev": "nodemon src/index.ts",
     "dev:2": "nodemon review-helper.ts",
-    "start": "node dist/index.js",
+    "start": "node ../test_reviewer/dist/index.js",
     "publish": "npm run build && npm login",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
