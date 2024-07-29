@@ -146,6 +146,19 @@ class Reviewer {
             throw new Error(`OpenAI API error: ${error.message}`);
         }
     }
+
+    async historicalAnalysis(repoPath: string): Promise<string> {
+        try {
+            const response = await this.client.completions.create({
+                prompt: `Analyze the code changes history for the repository at ${repoPath} and provide improvement recommendations.\n\nAnalysis:`,
+                model: this.model,
+                max_tokens: this.maxTokens,
+            });
+            return response.choices[0].text;
+        } catch (error: Error | any) {
+            throw new Error(`OpenAI API error: ${error.message}`);
+        }
+    }
 }
 
 export {
