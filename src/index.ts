@@ -133,6 +133,19 @@ class Reviewer {
             throw new Error(`OpenAI API error: ${error.message}`);
         }
     }
+
+    async codeStyleRecommendations(code: string): Promise<string> {
+        try {
+            const response = await this.client.completions.create({
+                prompt: `Provide style recommendations for the following code according to best practices:\n\n${code}\n\nStyle Recommendations:`,
+                model: this.model,
+                max_tokens: this.maxTokens,
+            });
+            return response.choices[0].text;
+        } catch (error: Error | any) {
+            throw new Error(`OpenAI API error: ${error.message}`);
+        }
+    }
 }
 
 export {
