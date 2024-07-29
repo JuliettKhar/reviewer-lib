@@ -15,7 +15,15 @@ declare module 'reviewer' {
   export class Reviewer {
     constructor(options: ReviewerOptions);
     submitCode(code: string): Promise<string | undefined>;
-    submitCodeAssistanceMode(code: string): Promise<string | undefined>;
     getCurrentModels(): Promise<IModel[]>;
+    constructor(options: ReviewerOptions);
+    reviewCode(code: string): Promise<string>;
+    suggestImprovements(code: string): Promise<string>;
+    generateDocumentation(code: string): Promise<string>;
+    optimizeCode(code: string): Promise<string>;
+    generateTests(code: string): Promise<string>;
+    securityAnalysis(code: string): Promise<string>;
+    codeStyleRecommendations(code: string): Promise<string>;
+    historicalAnalysis(repoPath: string): Promise<string>;
   }
 }
