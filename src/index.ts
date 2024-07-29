@@ -29,24 +29,9 @@ class Reviewer {
     async submitCode(code: string): Promise<string | undefined> {
         try {
             const response: any = await this.client.completions.create({
-                prompt: `Review the following code and provide feedback on how to improve it:\n\n${code}\n\nFeedback:`,
+                prompt: `Review the part of code:\n\n${code}\n\nProvide feedback how this part of code can be improved from optimal perspective:\n\nFeedback:`,
                 model: this.model,
                 max_tokens: this.maxTokens,
-            });
-
-            return response.choices[0].text;
-        } catch (error: Error | any) {
-            console.info('Request available models by getCurrentModels()');
-            throw new Error(`OpenAI API error: ${error.message}`);
-        }
-    }
-
-    async submitCodeAssistanceMode(code: string, model = this.model, maxTokens = this.maxTokens): Promise<string | undefined> {
-        try {
-            const response: any = await this.client.completions.create({
-                prompt: `Review the part of code:\n\n${code}\n\nProvide feedback how this part of code can be improved from optimal perspective:`,
-                model: model,
-                max_tokens: maxTokens,
             });
 
             return response.choices[0].text;
