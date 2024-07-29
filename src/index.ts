@@ -16,7 +16,7 @@ class Reviewer {
     private readonly client;
     private readonly maxTokens;
 
-    constructor(apiKey: string, model = 'text-davinci-003', maxTokens = 150) {
+    constructor(apiKey: string, model = 'davinci-002', maxTokens = 150) {
         this.apiKey = apiKey;
         this.model = model;
         this.maxTokens = maxTokens;
