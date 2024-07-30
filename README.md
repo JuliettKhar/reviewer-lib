@@ -3,16 +3,11 @@ An automated code review tool that uses OpenAI to analyze and provide
 recommendations for code improvement and commenting in PR when received message from AI.
 
 [//]: # (![Build Status]&#40;https://img.shields.io/github/actions/workflow/status/JuliettKhar/reviewer-lib/ci.yml&#41;)
-
+[//]: # (![Coverage]&#40;https://img.shields.io/codecov/c/github/JuliettKhar/reviewer-lib&#41;)
 [//]: # (![Downloads]&#40;https://img.shields.io/npm/dt/reviewer-lib&#41;)
-
 [//]: # (![Forks]&#40;https://img.shields.io/github/forks/JuliettKhar/reviewer-lib&#41;)
-
-[//]: # (![Coverage]&#40;https://img.shields.io/codecov/c/github/JuliettKhar/reviewer-lib&#41&#41;)
-
 [//]: # (![Stars]&#40;https://img.shields.io/github/stars/JuliettKhar/reviewer-lib&#41;)
-
-[//]: # (![Dependencies]&#40;https://img.shields.io/david/JuliettKhar/reviewer-lib&#41;)
+![Dependencies](https://img.shields.io/librariesio/release/npm/reviewer-lib)
 ![NPM Version](https://img.shields.io/npm/v/reviewer-lib)
 ![Minified Size](https://img.shields.io/bundlephobia/min/reviewer-lib)
 ![Open Issues](https://img.shields.io/github/issues/JuliettKhar/reviewer-lib)
@@ -188,25 +183,25 @@ Other Functions
 - `submitCodeAssistanceMode(code: string)`: Function, analyzes and provides recommendations for improving the code. Use 'client.completions.create' instance method. (For more expensive models)
 - `getCurrentModels`: Function, gets list of available AI models.
 
-[//]: # (### Contributing)
+### Contributing
 
-[//]: # (```shell)
+```shell
 
-[//]: # (# Clone the repository)
+# Clone the repository
 
-[//]: # (git clone https://github.com/JuliettKhar/reviewer-lib.git)
+git clone https://github.com/JuliettKhar/reviewer-lib.git
 
-[//]: # ()
-[//]: # (# Install dependencies)
 
-[//]: # (npm install)
+# Install dependencies
 
-[//]: # ()
-[//]: # (# Create a new branch)
+npm install
 
-[//]: # (git checkout -b f/your-feature)
 
-[//]: # ()
-[//]: # (# Send a pull request)
+# Create a new branch
 
-[//]: # (git push origin f/your-feature)
+git checkout -b f/your-feature
+
+
+# Send a pull request
+
+git push origin f/your-feature
