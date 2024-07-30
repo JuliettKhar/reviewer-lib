@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-// @ts-ignore
 var dist_1 = require("../dist");
 var apiKey = process.env.OPENAI_API_KEY;
 if (!apiKey) {
