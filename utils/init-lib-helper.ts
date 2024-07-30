@@ -1,4 +1,3 @@
-// @ts-ignore
 import {Reviewer} from '../dist';
 
 const apiKey = process.env.OPENAI_API_KEY;
