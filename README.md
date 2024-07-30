@@ -20,7 +20,7 @@ recommendations for code improvement and commenting in PR when received message 
 
 
 ## Installation
-```sh copy
+```shell
 npm install reviewer-lib
 ```
 ## Usage
@@ -51,7 +51,7 @@ reviewer.submitCode(code)
 
 in CI/CD:
 1. Create file and set up instance. `./review.js`
-```typescript copy
+```typescript
 import { Reviewer} from 'reviewer-lib';
 
 const apiKey = process.env.OPENAI_API_KEY;
@@ -79,7 +79,7 @@ process.stdin.on('end', () => {
 });
 ```
 2. Create workflow. `.github/workflows/code-review.yml`
-```yaml copy
+```yaml
 name: Code Review with ChatGPT
 
 on:
@@ -143,43 +143,43 @@ jobs:
 - code (String): The code to analyze. Returns Promise<String>: Suggestions for improving the code.
 2. Methods:
 - `submitCode(code: string)`: Function, analyzes and provides recommendations for improving the code. Use '/engines/${model}/completions' endpoint.
-```typescript copy
+```typescript
 reviewer.submitCode(code).then(suggestions => {
   console.log('Review Suggestions:', suggestions);
 });
 ```
 - `generateDocumentation(code: string)`: A function that automatically generates comments or documentation for code.
-```typescript copy
+```typescript
 reviewer.generateDocumentation(code).then(suggestions => {
   console.log('Generated Documentation:', suggestions);
 });
 ```
 - `optimizeCode(code: string)`: A function for suggesting optimizations in code in terms of performance and readability.
-```typescript copy
+```typescript
 reviewer.optimizeCode(code).then(suggestions => {
   console.log('Optimize Suggestions:', suggestions);
 });
 ```
 - `generateTests(code: string)`: Function for automatic test generation based on provided code.
-```typescript copy
+```typescript
 reviewer.generateTests(code).then(suggestions => {
   console.log('Tests Suggestions:', suggestions);
 });
 ```
 - `securityAnalysis(code: string)`: A function that checks code for potential vulnerabilities and suggests solutions.
-```typescript copy
+```typescript
 reviewer.securityAnalysis(code).then(suggestions => {
   console.log('Security Suggestions:', suggestions);
 });
 ```
 - `codeStyleRecommendations(code: string)`: Add a feature that provides recommendations for improving code style by following established style guides.
-```typescript copy
+```typescript
 reviewer.codeStyleRecommendations(code).then(suggestions => {
   console.log('Code style Suggestions:', suggestions);
 });
 ```
 - `historicalAnalysis(repoPath: string)`: A feature that analyzes the history of code changes and makes recommendations for improvements based on past changes.
-```typescript copy
+```typescript
 reviewer.historicalAnalysis(code).then(suggestions => {
   console.log('Historical overview:', suggestions);
 });
@@ -188,13 +188,13 @@ Other Functions
 - `submitCodeAssistanceMode(code: string)`: Function, analyzes and provides recommendations for improving the code. Use 'client.completions.create' instance method. (For more expensive models)
 - `getCurrentModels`: Function, gets list of available AI models.
 
-[//]: # (## Contributing)
+[//]: # (### Contributing)
 
-[//]: # (```)
+[//]: # (```shell)
 
 [//]: # (# Clone the repository)
 
-[//]: # (git clone https://github.com/your-username/ai-code-reviewer.git)
+[//]: # (git clone https://github.com/JuliettKhar/reviewer-lib.git)
 
 [//]: # ()
 [//]: # (# Install dependencies)
@@ -204,9 +204,9 @@ Other Functions
 [//]: # ()
 [//]: # (# Create a new branch)
 
-[//]: # (git checkout -b feature/your-feature)
+[//]: # (git checkout -b f/your-feature)
 
 [//]: # ()
 [//]: # (# Send a pull request)
 
-[//]: # (git push origin feature/your-feature)
+[//]: # (git push origin f/your-feature)
