@@ -24,3 +24,13 @@ reviewer.submitCode(code)
         console.error('Error:', error);
         process.exit(1);
     });
+
+reviewer.submitCodeAssistanceMode(code)
+    .then((feedback: string | undefined) => {
+        console.log('Code Review Feedback:', feedback);
+        return feedback;
+    })
+    .catch((error: Error | string) => {
+        console.error('Error:', error);
+        process.exit(1);
+    });
