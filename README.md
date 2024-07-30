@@ -12,7 +12,7 @@ recommendations for code improvement and commenting in PR when received message 
 ![Minified Size](https://img.shields.io/bundlephobia/min/reviewer-lib)
 ![Open Issues](https://img.shields.io/github/issues/JuliettKhar/reviewer-lib)
 
-
+ 
 
 ## Installation
 ```shell
@@ -21,7 +21,7 @@ npm install reviewer-lib
 ## Usage
 Notes: Cheaper models give a lower quality result (Davinci, Curie, Ada, Babbage).
 To use less expensive models, OpenAI API requests should be directed to instance.submitCode.
-- [OpenAI prices](https://openai.com/api/pricing/https://openai.com/api/pricing/)
+- [OpenAI prices](https://openai.com/api/pricing/)
 - [OpenAI model's deprecations](https://platform.openai.com/docs/deprecations)
 ```typescript
 import { Reviewer} from 'reviewer-lib';
