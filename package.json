@@ -14,6 +14,7 @@
   ],
   "scripts": {
     "build": "npx tsc",
+    "build:util": "npx tsc utils/init-lib-helper.ts --outDir dist",
     "serve": "npx ts-node src/index.ts",
     "dev": "nodemon src/index.ts",
     "start": "dist/index.js",

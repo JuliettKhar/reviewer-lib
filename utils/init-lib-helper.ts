@@ -9,24 +9,19 @@ if (!apiKey) {
 }
 
 const reviewer = new Reviewer(apiKey);
-let code = '';
-
-process.stdin.on('data', () => {
-    code += `
+let code = `
 function exampleFunction(x, y) {
   let result = x + y;
   return result;
 }
 `;
-    console.info(process.env.OPENAI_API_KEY)
-});
-process.stdin.on('end', () => {
-    reviewer.submitCode(code)
-        .then((feedback: string | undefined) => {
-            console.log('Code Review Feedback:', feedback);
-        })
-        .catch((error: Error | string) => {
-            console.error('Error:', error);
-            process.exit(1);
-        })
-});
+
+reviewer.submitCode(code)
+    .then((feedback: string | undefined) => {
+        console.log('Code Review Feedback:', feedback);
+        return feedback;
+    })
+    .catch((error: Error | string) => {
+        console.error('Error:', error);
+        process.exit(1);
+    });
