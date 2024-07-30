@@ -7,7 +7,7 @@ on:
       - develop
 
 jobs:
-  review:
+  check_build_ability:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,6 +26,6 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          npm run build
+          npm run build:util
           OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} node ./dist/init-lib-helper.js > review_feedback.txt
           REVIEW_FEEDBACK=$(cat review_feedback.txt)
