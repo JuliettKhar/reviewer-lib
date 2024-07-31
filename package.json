@@ -12,13 +12,15 @@
   ],
   "scripts": {
     "build": "npx tsc",
-    "build:util": "npx tsc utils/init-lib-helper.ts --outDir dist",
     "serve": "npx ts-node src/index.ts",
     "dev": "nodemon src/index.ts",
-    "dev:2": "nodemon review-helper.ts",
     "start": "dist/index.js",
     "publish:package": "npm run build && npm publish",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JuliettKhar/reviewer-lib.git"
   },
   "author": "Julia Kharlamova",
   "license": "ISC",
