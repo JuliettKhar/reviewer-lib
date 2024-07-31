@@ -2,11 +2,11 @@
 An automated code review tool that uses OpenAI to analyze and provide 
 recommendations for code improvement and commenting in PR when received message from AI.
 
-[//]: # (![Build Status]&#40;https://img.shields.io/github/actions/workflow/status/JuliettKhar/reviewer-lib/ci.yml&#41;)
-[//]: # (![Coverage]&#40;https://img.shields.io/codecov/c/github/JuliettKhar/reviewer-lib&#41;)
-[//]: # (![Downloads]&#40;https://img.shields.io/npm/dt/reviewer-lib&#41;)
 [//]: # (![Forks]&#40;https://img.shields.io/github/forks/JuliettKhar/reviewer-lib&#41;)
 [//]: # (![Stars]&#40;https://img.shields.io/github/stars/JuliettKhar/reviewer-lib&#41;)
+[//]: # (![Coverage]&#40;https://img.shields.io/codecov/c/github/JuliettKhar/reviewer-lib&#41;)
+[//]: # (![Build Status]&#40;https://img.shields.io/github/actions/workflow/status/JuliettKhar/reviewer-lib/deploy.yml&#41;)
+![Downloads](https://img.shields.io/npm/dt/reviewer-lib)
 ![Dependencies](https://img.shields.io/librariesio/release/npm/reviewer-lib)
 ![NPM Version](https://img.shields.io/npm/v/reviewer-lib)
 ![Minified Size](https://img.shields.io/bundlephobia/min/reviewer-lib)
