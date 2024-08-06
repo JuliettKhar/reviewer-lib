@@ -16,8 +16,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js and publish
+      - name: Set up Node.js
         uses: actions/setup-node@v4
+
+      - name: Publish to npm
         with:
           node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
