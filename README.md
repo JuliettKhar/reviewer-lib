@@ -21,8 +21,7 @@ npm install reviewer-lib
 ## Usage
 Notes: Cheaper models give a lower quality result (Davinci, Curie, Ada, Babbage).
 To use less expensive models, OpenAI API requests should be directed to instance.submitCode.
-- [OpenAI prices](https://openai.com/api/pricing/)
-- [OpenAI model's deprecations](https://platform.openai.com/docs/deprecations)
+
 ```typescript
 import { Reviewer} from 'reviewer-lib';
 
@@ -132,10 +131,20 @@ jobs:
 ## API
 `new Reviewer(apiKey, model, maxTokens)`. Creates a new Reviewer instance.
 1. Params:
-- apiKey (String): Your OpenAI API key.
-- model (String): The model you want to use (default 'gpt-3.5-turbo' changed in 1.1.0 on davinchi-002).
-- maxTokens (Number): The maximum number of tokens for the response (default 150).
-- code (String): The code to analyze. Returns Promise<String>: Suggestions for improving the code.
+- `apiKey (String)`: Your OpenAI API key.
+- `model (String)`: The model you want to use (default 'gpt-3.5-turbo').
+- `maxTokens (Number)`: The maximum number of tokens for the response (default 200).
+- `code (String)`: The code to analyze. Returns Promise<String>: Suggestions for improving the code.
+- `temperature?`: Controls the creativity and variety of the generated text. Values from 0 to 1.
+- `n?`: The number of text variants the model should generate. The default value is 1.
+- `stop?`: A list of sequences where the generation should stop. For example, ["\n", "END"].
+- `top_p?`: Controls cumulative probability sampling. Values from 0 to 1. This is an alternative way to control creativity that focuses on the most likely tokens.
+- `frequency_penalty?`: A number from 0 to 1. Reduces the probability of tokens that have already been used in the text. This helps reduce repetition.
+- `presence_penalty?`: A number from 0 to 1. Increases the probability of tokens that have not yet been used. This helps introduce new topics and ideas.
+- `logprobs?`: If set, returns the logarithms of the probabilities of all tokens when generating. This is useful for analyzing probabilities and choosing the best tokens.
+- `echo?`: If set to true, returns the request along with the response. This can be useful for debugging.
+- `best_of?`: Generate multiple variants and choose the best one. This is related to n, but allows you to get the best variant from a larger number of generated texts.
+- `logit_bias?`: A map of tokens and values to control the probability of certain tokens. This allows you to influence the generation by encouraging or disallowing the use of certain words.
 2. Methods:
 - `submitCode(code: string)`: Function, analyzes and provides recommendations for improving the code. Use '/engines/${model}/completions' endpoint.
 ```typescript
@@ -182,3 +191,7 @@ reviewer.historicalAnalysis(code).then(suggestions => {
 Other Functions
 - `submitCodeAssistanceMode(code: string)`: Function, analyzes and provides recommendations for improving the code. Use 'client.completions.create' instance method. (For more expensive models)
 - `getCurrentModels`: Function, gets list of available AI models.
+
+References
+- [OpenAI prices](https://openai.com/api/pricing/)
+- [OpenAI model's deprecations](https://platform.openai.com/docs/deprecations)
