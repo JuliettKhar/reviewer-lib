@@ -8,31 +8,21 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - name: Set up Node.js and publish
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'
-          registry-url: 'https://registry.npmjs.org/'
-
-      - name: Authenticate to npm
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: echo "//registry.npmjs.org/:_authToken=${{ env.NODE_AUTH_TOKEN }}" > ~/.npmrc
-
-      - name: Install dependencies
-        run: npm install
-
-
-
-      - name: Build the project
-        run: npm run build
-
-      - name: Publish to npm
-        run: npm publish
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+        run:  |
+          npm ci
+          npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
