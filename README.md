@@ -193,5 +193,6 @@ Other Functions
 - `getCurrentModels`: Function, gets list of available AI models.
 
 References
+- [Wiki](https://github.com/JuliettKhar/reviewer-lib/wiki)
 - [OpenAI prices](https://openai.com/api/pricing/)
 - [OpenAI model's deprecations](https://platform.openai.com/docs/deprecations)
