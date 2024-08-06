@@ -9,6 +9,7 @@ declare module 'reviewer-lib' {
   export class Reviewer {
     constructor(apiKey: string, model?: string, maxTokens?: number);
     submitCode(code: string): Promise<string | undefined>;
+    submitCodeAssistanceMode(code: string): Promise<string | undefined>
     getCurrentModels(): Promise<IModel[]>;
     codeReviewOnCI(): Promise<string>;
     generateDocumentation(code: string): Promise<string>;

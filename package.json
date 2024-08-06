@@ -8,7 +8,9 @@
     "code",
     "review",
     "openai",
-    "api"
+    "api",
+    "javascript",
+    "typescript"
   ],
   "scripts": {
     "build": "npx tsc",
