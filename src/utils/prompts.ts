@@ -19,18 +19,23 @@ export const generateDocumentationPrompt = (code: string) => `
 export const generateSubmitCodePrompt = (code: string) => `
 Review the part of code:
 ${code}
-Provide feedback how this part of code can be improved from optimal perspective:`;
 
-export const generateSubmitCodeAssistanceModePrompt = (code: string) => `Review the part of code:
+Provide feedback how this part of JavaScript code can be improved from optimal perspective:
+`;
+
+export const generateSubmitCodeAssistanceModePrompt = (code: string) => `
+Review the following JavaScript code. Identify potential bugs, improvements, and anti-patterns:
 ${code}
-Provide feedback how this part of code can be improved from optimal perspective:`;
+
+Code review report:
+`;
 
 export const generateOptimizeCodePrompt = (code: string) => `Optimize the following code for performance and readability:
 ${code} 
 If there is nothing to optimize, return "No optimization needed.
 Optimized Code:`;
 
-export const generateTestsPrompt = (code: string) =>  `Generate js jest unit tests for the following code:
+export const generateTestsPrompt = (code: string) => `Generate js jest unit tests for the following code:
 ${code}
 Unit Tests:`;
 

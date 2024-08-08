@@ -12,8 +12,6 @@ recommendations for code improvement and commenting in PR when received message 
 ![Minified Size](https://img.shields.io/bundlephobia/min/reviewer-lib)
 ![Open Issues](https://img.shields.io/github/issues/JuliettKhar/reviewer-lib)
 
- 
-
 ## Installation
 ```shell
 npm install reviewer-lib
@@ -147,50 +145,21 @@ jobs:
 - `logit_bias?`: A map of tokens and values to control the probability of certain tokens. This allows you to influence the generation by encouraging or disallowing the use of certain words.
 2. Methods:
 - `submitCode(code: string)`: Function, analyzes and provides recommendations for improving the code. Use '/engines/${model}/completions' endpoint.
+Work with cheaper models. `Please, note` while using this func with more expensive models, it may not work and throw an error. In this case use `submitCodeAssistanceMode`
 ```typescript
 reviewer.submitCode(code).then(suggestions => {
   console.log('Review Suggestions:', suggestions);
 });
 ```
-- `generateDocumentation(code: string)`: A function that automatically generates comments or documentation for code.
-```typescript
-reviewer.generateDocumentation(code).then(suggestions => {
-  console.log('Generated Documentation:', suggestions);
-});
-```
-- `optimizeCode(code: string)`: A function for suggesting optimizations in code in terms of performance and readability.
-```typescript
-reviewer.optimizeCode(code).then(suggestions => {
-  console.log('Optimize Suggestions:', suggestions);
-});
-```
-- `generateTests(code: string)`: Function for automatic test generation based on provided code.
-```typescript
-reviewer.generateTests(code).then(suggestions => {
-  console.log('Tests Suggestions:', suggestions);
-});
-```
-- `securityAnalysis(code: string)`: A function that checks code for potential vulnerabilities and suggests solutions.
-```typescript
-reviewer.securityAnalysis(code).then(suggestions => {
-  console.log('Security Suggestions:', suggestions);
-});
-```
-- `codeStyleRecommendations(code: string)`: Add a feature that provides recommendations for improving code style by following established style guides.
-```typescript
-reviewer.codeStyleRecommendations(code).then(suggestions => {
-  console.log('Code style Suggestions:', suggestions);
-});
-```
-- `historicalAnalysis(repoPath: string)`: A feature that analyzes the history of code changes and makes recommendations for improvements based on past changes.
-```typescript
-reviewer.historicalAnalysis(code).then(suggestions => {
-  console.log('Historical overview:', suggestions);
-});
-```
 Other Functions
 - `submitCodeAssistanceMode(code: string)`: Function, analyzes and provides recommendations for improving the code. Use 'client.completions.create' instance method. (For more expensive models)
 - `getCurrentModels`: Function, gets list of available AI models.
+- `historicalAnalysis(repoPath: string)`: A feature that analyzes the history of code changes and makes recommendations for improvements based on past changes.
+- `codeStyleRecommendations(code: string)`: Add a feature that provides recommendations for improving code style by following established style guides.
+- `securityAnalysis(code: string)`: A function that checks code for potential vulnerabilities and suggests solutions.
+- `generateTests(code: string)`: Function for automatic test generation based on provided code.
+- `optimizeCode(code: string)`: A function for suggesting optimizations in code in terms of performance and readability.
+- `generateDocumentation(code: string)`: A function that automatically generates comments or documentation for code.
 
 References
 - [Wiki](https://github.com/JuliettKhar/reviewer-lib/wiki)
