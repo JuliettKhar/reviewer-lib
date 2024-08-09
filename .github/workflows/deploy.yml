@@ -14,17 +14,18 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v2
         with:
-          node-version: '20.x'
+          node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Publish to npm
         run:  |
           npm ci
+          npm adduser
           npm run "publish:package"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
