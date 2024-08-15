@@ -42,7 +42,7 @@ reviewer.submitCode(code)
 ```
 
 in CI/CD:
-1. Create file and set up instance. `./review.js`
+1. Create file and set up instance. `./review.mjs`
 ```typescript
 import { Reviewer} from 'reviewer-lib';
 
@@ -70,7 +70,7 @@ process.stdin.on('end', () => {
     });
 });
 ```
-2. Create workflow. `.github/workflows/code-review.yml`
+2. Create workflow. `.github/workflows/code-review.yml`. Add $GITHUB_TOKEN and $OPENAI_API_KEY to your project secrets
 ```yaml
 name: Code Review with ChatGPT
 
@@ -111,7 +111,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           npm run build
-          node ./review.js < pr.diff > review_feedback.txt
+          node ./review.mjs < pr.diff > review_feedback.txt
 
       - name: Post review feedback as a comment
         env:
