@@ -131,7 +131,7 @@ jobs:
 1. Params:
 - `apiKey (String)`: Your OpenAI API key.
 - `model (String)`: The model you want to use (default 'gpt-3.5-turbo').
-- `maxTokens (Number)`: The maximum number of tokens for the response (default 200).
+- `maxTokens (Number)`: The maximum number of tokens for the response (default 400).
 - `code (String)`: The code to analyze. Returns Promise<String>: Suggestions for improving the code.
 - `temperature?`: Controls the creativity and variety of the generated text. Values from 0 to 1.
 - `n?`: The number of text variants the model should generate. The default value is 1.
@@ -144,14 +144,15 @@ jobs:
 - `best_of?`: Generate multiple variants and choose the best one. This is related to n, but allows you to get the best variant from a larger number of generated texts.
 - `logit_bias?`: A map of tokens and values to control the probability of certain tokens. This allows you to influence the generation by encouraging or disallowing the use of certain words.
 2. Methods:
-- `submitCode(code: string)`: Function, analyzes and provides recommendations for improving the code. Use '/engines/${model}/completions' endpoint.
-Work with cheaper models. `Please, note` while using this func with more expensive models, it may not work and throw an error. In this case use `submitCodeAssistanceMode`
+- `submitCodeAssistanceMode(code: string)`: Function, analyzes and provides recommendations for improving the code.
 ```typescript
-reviewer.submitCode(code).then(suggestions => {
+reviewer.submitCodeAssistanceMode(code).then(suggestions => {
   console.log('Review Suggestions:', suggestions);
 });
 ```
 Other Functions
+- `submitCode(code: string)`: Function, analyzes and provides recommendations for improving the code. Use '/engines/${model}/completions' endpoint.
+Work with cheaper models. `Please, note` while using this func with more expensive models, it may not work and throw an error. In this case use `submitCodeAssistanceMode`.
 - `getCurrentModels`: Function, gets list of available AI models.
 - `historicalAnalysis(repoPath: string)`: A feature that analyzes the history of code changes and makes recommendations for improvements based on past changes.
 - `codeStyleRecommendations(code: string)`: Add a feature that provides recommendations for improving code style by following established style guides.
