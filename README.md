@@ -6,7 +6,7 @@ recommendations for code improvement and commenting in PR when received message 
 [//]: # (![Stars]&#40;https://img.shields.io/github/stars/JuliettKhar/reviewer-lib&#41;)
 [//]: # (![Coverage]&#40;https://img.shields.io/codecov/c/github/JuliettKhar/reviewer-lib&#41;)
 [//]: # (![Dependencies]&#40;https://img.shields.io/librariesio/release/npm/reviewer-lib&#41;)
-[//]: # (![Build Status]&#40;https://img.shields.io/github/actions/workflow/status/JuliettKhar/reviewer-lib/deploy.yml&#41;)
+![Build Status](https://img.shields.io/github/actions/workflow/status/JuliettKhar/reviewer-lib/.github/workflows/check-app.yml)
 ![Downloads](https://img.shields.io/npm/dt/reviewer-lib)
 ![NPM Version](https://img.shields.io/npm/v/reviewer-lib)
 ![Minified Size](https://img.shields.io/bundlephobia/min/reviewer-lib)
@@ -14,7 +14,7 @@ recommendations for code improvement and commenting in PR when received message 
 
 ## Installation
 ```shell
-npm install reviewer-lib
+npm install -D reviewer-lib
 ```
 ## Usage
 Notes: Cheaper models give a lower quality result (Davinci, Curie, Ada, Babbage).
@@ -31,7 +31,7 @@ function exampleFunction(x, y) {
 }
 `;
 
-reviewer.submitCode(code)
+reviewer.submitCodeAssistanceMode(code)
    .then((feedback: string) => {
       console.log('Code Review Feedback:');
       console.log(feedback);
@@ -59,7 +59,7 @@ process.stdin.on('data', chunk => {
   code += chunk;
 });
 process.stdin.on('end', () => {
-  reviewer.submitCode(code)
+  reviewer.submitCodeAssistanceMode(code)
     .then((feedback: string) => {
       console.log('Code Review Feedback:');
       console.log(feedback);
@@ -152,7 +152,6 @@ reviewer.submitCode(code).then(suggestions => {
 });
 ```
 Other Functions
-- `submitCodeAssistanceMode(code: string)`: Function, analyzes and provides recommendations for improving the code. Use 'client.completions.create' instance method. (For more expensive models)
 - `getCurrentModels`: Function, gets list of available AI models.
 - `historicalAnalysis(repoPath: string)`: A feature that analyzes the history of code changes and makes recommendations for improvements based on past changes.
 - `codeStyleRecommendations(code: string)`: Add a feature that provides recommendations for improving code style by following established style guides.

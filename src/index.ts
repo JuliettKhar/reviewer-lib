@@ -39,7 +39,7 @@ class Reviewer {
     private readonly maxTokens;
     private readonly modelOptions;
 
-    constructor(apiKey: string, model = 'gpt-3.5-turbo-instruct', maxTokens = 200, defaultClassOptions: IDefaultOptions = defaultOptions) {
+    constructor(apiKey: string, model = 'gpt-3.5-turbo-instruct', maxTokens = 400, defaultClassOptions: IDefaultOptions = defaultOptions) {
         this.apiKey = apiKey;
         this.model = model;
         this.maxTokens = maxTokens;
