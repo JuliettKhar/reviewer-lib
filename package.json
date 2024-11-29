@@ -27,7 +27,7 @@
   "author": "Julia Kharlamova",
   "license": "ISC",
   "devDependencies": {
-    "@types/express": "^4.17.21",
+    "@types/express": "^5.0.0",
     "@types/node": "^22.7.0",
     "nodemon": "^3.1.4",
     "ts-node": "^10.9.2",
