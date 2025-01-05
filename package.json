@@ -12,6 +12,10 @@
     "javascript",
     "typescript"
   ],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "npx tsc",
     "serve": "npx ts-node src/index.ts",
