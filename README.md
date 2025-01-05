@@ -161,6 +161,8 @@ Work with cheaper models. `Please, note` while using this func with more expensi
 - `optimizeCode(code: string)`: A function for suggesting optimizations in code in terms of performance and readability.
 - `generateDocumentation(code: string)`: A function that automatically generates comments or documentation for code.
 
+### Feedback, integrated ob CI/CD (example)
+![photo](./feedback-photo.png)
 References
 - [Wiki](https://github.com/JuliettKhar/reviewer-lib/wiki)
 - [OpenAI prices](https://openai.com/api/pricing/)
