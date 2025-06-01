@@ -38,6 +38,6 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "openai": "^4.53.2"
+    "openai": "^5.0.1"
   }
 }
