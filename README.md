@@ -13,12 +13,13 @@ recommendations for code improvement and commenting in PR when received message 
 ![Open Issues](https://img.shields.io/github/issues/JuliettKhar/reviewer-lib)
 
 ## Installation
+> Requires Node.js 20+ (the library depends on `openai` v6).
 ```shell
 npm install -D reviewer-lib
 ```
 ## Usage
-Notes: Cheaper models give a lower quality result (Davinci, Curie, Ada, Babbage).
-To use less expensive models, OpenAI API requests should be directed to instance.submitCode.
+Notes: this library calls the OpenAI Completions API, so the `model` must be an instruct-style
+completion model (default `gpt-3.5-turbo-instruct`). Chat-only models such as `gpt-4o` are not compatible.
 
 ```typescript
 import { Reviewer} from 'reviewer-lib';
@@ -95,7 +96,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Install dependencies
         run: npm install
@@ -130,7 +131,7 @@ jobs:
 `new Reviewer(apiKey, model, maxTokens)`. Creates a new Reviewer instance.
 1. Params:
 - `apiKey (String)`: Your OpenAI API key.
-- `model (String)`: The model you want to use (default 'gpt-3.5-turbo').
+- `model (String)`: The model you want to use (default 'gpt-3.5-turbo-instruct').
 - `maxTokens (Number)`: The maximum number of tokens for the response (default 400).
 - `code (String)`: The code to analyze. Returns Promise<String>: Suggestions for improving the code.
 - `temperature?`: Controls the creativity and variety of the generated text. Values from 0 to 1.
@@ -151,8 +152,7 @@ reviewer.submitCodeAssistanceMode(code).then(suggestions => {
 });
 ```
 Other Functions
-- `submitCode(code: string)`: Function, analyzes and provides recommendations for improving the code. Use '/engines/${model}/completions' endpoint.
-Work with cheaper models. `Please, note` while using this func with more expensive models, it may not work and throw an error. In this case use `submitCodeAssistanceMode`.
+- `submitCode(code: string)`: Function, analyzes and provides recommendations for improving the code. Uses the OpenAI Completions API (`completions.create`) with the configured model. `Please, note`: the Completions API only supports instruct-style models (default `gpt-3.5-turbo-instruct`); chat-only models such as `gpt-4o` will throw an error.
 - `getCurrentModels`: Function, gets list of available AI models.
 - `historicalAnalysis(repoPath: string)`: A feature that analyzes the history of code changes and makes recommendations for improvements based on past changes.
 - `codeStyleRecommendations(code: string)`: Add a feature that provides recommendations for improving code style by following established style guides.
@@ -161,7 +161,7 @@ Work with cheaper models. `Please, note` while using this func with more expensi
 - `optimizeCode(code: string)`: A function for suggesting optimizations in code in terms of performance and readability.
 - `generateDocumentation(code: string)`: A function that automatically generates comments or documentation for code.
 
-### Feedback, integrated ob CI/CD (example)
+### Feedback, integrated on CI/CD (example)
 ![photo](./feedback-photo.png)
 References
 - [Wiki](https://github.com/JuliettKhar/reviewer-lib/wiki)
