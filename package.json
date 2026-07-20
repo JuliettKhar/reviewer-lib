@@ -39,7 +39,7 @@
     "@types/express": "^5.0.0",
     "@types/node": "^26.1.1",
     "nodemon": "^3.1.4",
-    "reviewer-lib-published": "npm:reviewer-lib@^3.0.0",
+    "reviewer-lib-published": "npm:reviewer-lib@^3.1.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "vitest": "^4.1.10"
