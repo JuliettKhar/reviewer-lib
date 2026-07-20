@@ -18,8 +18,10 @@ recommendations for code improvement and commenting in PR when received message 
 npm install -D reviewer-lib
 ```
 ## Usage
-Notes: this library calls the OpenAI Completions API, so the `model` must be an instruct-style
-completion model (default `gpt-3.5-turbo-instruct`). Chat-only models such as `gpt-4o` are not compatible.
+Notes: by default the library uses the OpenAI **Chat Completions** API with `gpt-4o-mini`.
+You can pass any chat model (e.g. `gpt-4o`) as the `model` argument. Legacy instruct models
+(any name ending in `-instruct`, such as `gpt-3.5-turbo-instruct`) are still supported and
+are automatically routed to the older Completions API.
 
 ```typescript
 import { Reviewer} from 'reviewer-lib';
@@ -131,8 +133,8 @@ jobs:
 `new Reviewer(apiKey, model, maxTokens)`. Creates a new Reviewer instance.
 1. Params:
 - `apiKey (String)`: Your OpenAI API key.
-- `model (String)`: The model you want to use (default 'gpt-3.5-turbo-instruct').
-- `maxTokens (Number)`: The maximum number of tokens for the response (default 400).
+- `model (String)`: The model you want to use (default 'gpt-4o-mini'). Instruct models (`*-instruct`) route to the legacy Completions API automatically.
+- `maxTokens (Number)`: The maximum number of tokens for the response (default 1500).
 - `code (String)`: The code to analyze. Returns Promise<String>: Suggestions for improving the code.
 - `temperature?`: Controls the creativity and variety of the generated text. Values from 0 to 1.
 - `n?`: The number of text variants the model should generate. The default value is 1.
@@ -152,7 +154,7 @@ reviewer.submitCodeAssistanceMode(code).then(suggestions => {
 });
 ```
 Other Functions
-- `submitCode(code: string)`: Function, analyzes and provides recommendations for improving the code. Uses the OpenAI Completions API (`completions.create`) with the configured model. `Please, note`: the Completions API only supports instruct-style models (default `gpt-3.5-turbo-instruct`); chat-only models such as `gpt-4o` will throw an error.
+- `submitCode(code: string)`: Function, analyzes and provides recommendations for improving the code. Uses the Chat Completions API by default; if the configured model is an instruct model (`*-instruct`), it routes to the legacy Completions API instead.
 - `getCurrentModels`: Function, gets list of available AI models.
 - `historicalAnalysis(repoPath: string)`: A feature that analyzes the history of code changes and makes recommendations for improvements based on past changes.
 - `codeStyleRecommendations(code: string)`: Add a feature that provides recommendations for improving code style by following established style guides.

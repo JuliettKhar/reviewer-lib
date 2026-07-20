@@ -3,7 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Shared spies for the mocked OpenAI client. Declared via vi.hoisted so they
 // exist before vi.mock (which is hoisted to the top of the module) runs.
 const mocks = vi.hoisted(() => ({
-    create: vi.fn(),
+    chatCreate: vi.fn(),   // chat.completions.create — the default (Chat) path
+    create: vi.fn(),       // completions.create — the legacy instruct path
     get: vi.fn(),
     post: vi.fn(),
     ctor: vi.fn(),
@@ -13,6 +14,7 @@ vi.mock('openai', () => ({
     default: vi.fn(function (opts: unknown) {
         mocks.ctor(opts);
         return {
+            chat: { completions: { create: mocks.chatCreate } },
             completions: { create: mocks.create },
             get: mocks.get,
             post: mocks.post,
@@ -22,6 +24,9 @@ vi.mock('openai', () => ({
 
 import { Reviewer } from '../src/index';
 
+// Chat Completions response shape.
+const okChat = (text: string) => ({ choices: [{ message: { content: text } }] });
+// Legacy Completions response shape.
 const okText = (text: string) => ({ choices: [{ text }] });
 
 beforeEach(() => {
@@ -34,40 +39,59 @@ describe('Reviewer constructor', () => {
         expect(mocks.ctor).toHaveBeenCalledWith({ apiKey: 'sk-test-123' });
     });
 
-    it('applies default model and maxTokens', async () => {
-        mocks.create.mockResolvedValue(okText('ok'));
+    it('applies default model (gpt-4o-mini) and maxTokens (1500)', async () => {
+        mocks.chatCreate.mockResolvedValue(okChat('ok'));
         await new Reviewer('sk-test').submitCode('code');
 
-        expect(mocks.create).toHaveBeenCalledWith(
-            expect.objectContaining({ model: 'gpt-3.5-turbo-instruct', max_tokens: 400 }),
+        expect(mocks.chatCreate).toHaveBeenCalledWith(
+            expect.objectContaining({ model: 'gpt-4o-mini', max_tokens: 1500 }),
         );
     });
 
     it('honours custom model and maxTokens', async () => {
-        mocks.create.mockResolvedValue(okText('ok'));
-        await new Reviewer('sk-test', 'custom-model', 99).submitCode('code');
+        mocks.chatCreate.mockResolvedValue(okChat('ok'));
+        await new Reviewer('sk-test', 'gpt-4o', 99).submitCode('code');
 
-        expect(mocks.create).toHaveBeenCalledWith(
-            expect.objectContaining({ model: 'custom-model', max_tokens: 99 }),
+        expect(mocks.chatCreate).toHaveBeenCalledWith(
+            expect.objectContaining({ model: 'gpt-4o', max_tokens: 99 }),
         );
     });
 });
 
-describe('submitCode (regression: uses completions.create, not the removed /engines endpoint)', () => {
-    it('calls completions.create and never the legacy post(/engines) route', async () => {
-        mocks.create.mockResolvedValue(okText('great code'));
+describe('Chat routing (default path)', () => {
+    it('submitCode calls chat.completions.create with a system + user message', async () => {
+        mocks.chatCreate.mockResolvedValue(okChat('great code'));
         const result = await new Reviewer('sk-test').submitCode('const a = 1;');
 
         expect(result).toBe('great code');
-        expect(mocks.create).toHaveBeenCalledTimes(1);
+        expect(mocks.chatCreate).toHaveBeenCalledTimes(1);
+        expect(mocks.create).not.toHaveBeenCalled();
         expect(mocks.post).not.toHaveBeenCalled();
-        expect(mocks.create.mock.calls[0][0].prompt).toContain('const a = 1;');
+
+        const messages = mocks.chatCreate.mock.calls[0][0].messages;
+        expect(messages[0].role).toBe('system');
+        expect(messages[1].role).toBe('user');
+        expect(messages[1].content).toContain('const a = 1;');
+    });
+});
+
+describe('Instruct routing (backward compatibility)', () => {
+    it('routes -instruct models to the legacy completions.create with a prompt', async () => {
+        mocks.create.mockResolvedValue(okText('legacy feedback'));
+        const reviewer = new Reviewer('sk-test', 'gpt-3.5-turbo-instruct');
+        const result = await reviewer.submitCode('const b = 2;');
+
+        expect(result).toBe('legacy feedback');
+        expect(mocks.create).toHaveBeenCalledTimes(1);
+        expect(mocks.chatCreate).not.toHaveBeenCalled();
+        expect(mocks.create.mock.calls[0][0].prompt).toContain('const b = 2;');
+        expect(mocks.create.mock.calls[0][0].model).toBe('gpt-3.5-turbo-instruct');
     });
 });
 
 describe('generateDocumentation wrapping logic', () => {
     it('wraps bare text in a JSDoc block', async () => {
-        mocks.create.mockResolvedValue(okText('Adds two numbers.'));
+        mocks.chatCreate.mockResolvedValue(okChat('Adds two numbers.'));
         const doc = await new Reviewer('sk-test').generateDocumentation('code');
 
         expect(doc.startsWith('/**')).toBe(true);
@@ -77,14 +101,14 @@ describe('generateDocumentation wrapping logic', () => {
 
     it('leaves already-formatted JSDoc untouched', async () => {
         const formatted = '/**\n * done\n */';
-        mocks.create.mockResolvedValue(okText(formatted));
+        mocks.chatCreate.mockResolvedValue(okChat(formatted));
         const doc = await new Reviewer('sk-test').generateDocumentation('code');
 
         expect(doc).toBe(formatted);
     });
 
-    it('returns a fallback message when there are no choices', async () => {
-        mocks.create.mockResolvedValue({ choices: [] });
+    it('returns a fallback message when there is no content', async () => {
+        mocks.chatCreate.mockResolvedValue({ choices: [] });
         const doc = await new Reviewer('sk-test').generateDocumentation('code');
 
         expect(doc).toBe('No documentation generated by OpenAI API');
@@ -102,7 +126,7 @@ describe('getCurrentModels', () => {
     });
 });
 
-describe('completion-based methods return the model text', () => {
+describe('chat-based methods return the model text', () => {
     const methods = [
         'submitCodeAssistanceMode',
         'optimizeCode',
@@ -113,20 +137,20 @@ describe('completion-based methods return the model text', () => {
     ] as const;
 
     for (const method of methods) {
-        it(`${method} returns choices[0].text`, async () => {
-            mocks.create.mockResolvedValue(okText(`${method}-result`));
+        it(`${method} returns the message content`, async () => {
+            mocks.chatCreate.mockResolvedValue(okChat(`${method}-result`));
             const reviewer = new Reviewer('sk-test');
             const result = await (reviewer as any)[method]('code');
 
             expect(result).toBe(`${method}-result`);
-            expect(mocks.create).toHaveBeenCalledTimes(1);
+            expect(mocks.chatCreate).toHaveBeenCalledTimes(1);
         });
     }
 });
 
 describe('error handling', () => {
     it('submitCode wraps client errors with an OpenAI API error prefix', async () => {
-        mocks.create.mockRejectedValue(new Error('boom'));
+        mocks.chatCreate.mockRejectedValue(new Error('boom'));
         await expect(new Reviewer('sk-test').submitCode('code')).rejects.toThrow(
             'OpenAI API error: boom',
         );

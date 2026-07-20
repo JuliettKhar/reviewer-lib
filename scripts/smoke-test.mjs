@@ -70,11 +70,12 @@ try {
   if (key && key.trim()) {
     const live = new Reviewer(key.trim());
 
-    // Endpoint 1 — Completions API (completions.create), the core review path.
-    console.log('  › calling the live Completions endpoint with a sample snippet…');
+    // Endpoint 1 — the core review path (Chat Completions by default, or the legacy
+    // Completions API when an instruct model is configured), via submitCode.
+    console.log('  › calling the live review endpoint with a sample snippet…');
     const feedback = await live.submitCode('const sum = (a, b) => a + b;');
-    if (!feedback || !String(feedback).trim()) throw new Error('Completions endpoint returned an empty response');
-    console.log('  ✓ Completions responded (' + String(feedback).trim().length + ' chars)');
+    if (!feedback || !String(feedback).trim()) throw new Error('review endpoint returned an empty response');
+    console.log('  ✓ review endpoint responded (' + String(feedback).trim().length + ' chars)');
 
     // Endpoint 2 — models list (client.get('/models')), the only other endpoint the lib hits.
     console.log('  › calling the live models endpoint…');
