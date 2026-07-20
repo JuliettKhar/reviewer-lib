@@ -5,6 +5,31 @@ export const SYSTEM_PROMPT =
     'You are a senior software engineer. Follow the user\'s instructions precisely and ' +
     'return only the requested output, without preamble or markdown code fences unless asked.';
 
+// System persona for structured reviews (review() with JSON Structured Outputs).
+export const REVIEW_SYSTEM_PROMPT =
+    'You are a senior software engineer performing a precise code review. ' +
+    'Report only substantive issues: correctness bugs, security flaws, race conditions, ' +
+    'resource leaks, and clear anti-patterns. Skip pure style nitpicks unless they cause bugs. ' +
+    'Calibrate severity strictly and do not inflate it: ' +
+    '"critical" = security hole or data loss; ' +
+    '"high" = a definite bug that breaks behavior; ' +
+    '"medium" = a likely bug or an unhandled edge case; ' +
+    '"low" = minor robustness or defensive improvement. ' +
+    'For each finding give a severity, a short category, a clear message, and a concrete fix. ' +
+    'If there are no substantive issues, return an empty findings list.';
+
+// Builds the user message for review(). In diff mode the input is expected to be
+// annotated by annotateDiff(): each added line is prefixed with a `[path:line]` tag, and
+// the model must copy `file`/`line` verbatim from that tag so findings anchor to real lines.
+export const buildReviewPrompt = (input: string, asDiff = false) =>
+    asDiff
+        ? 'Review the following unified diff. Only comment on lines tagged with a `[path:line]` ' +
+          'marker (these are the added lines). For each finding, set "file" and "line" to exactly ' +
+          'the values from that line\'s `[path:line]` tag — never guess or compute line numbers.' +
+          `\n\n${input}`
+        : 'Review the following code and report substantive issues. Set "file" and "line" to ' +
+          `null since no file context is available.\n\n${input}`;
+
 export const generateDocumentationPrompt = (code: string) => `
     Generate detailed JSDoc documentation for the following JavaScript code snippet. Only include documentation if the code contains functions, classes, or other elements that require JSDoc annotations. If there is nothing to document, return "No documentation needed".
 

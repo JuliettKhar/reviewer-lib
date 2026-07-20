@@ -9,11 +9,15 @@ import {
     generateSubmitCodeAssistanceModePrompt,
     generateSubmitCodePrompt,
     generateTestsPrompt,
-    SYSTEM_PROMPT
+    SYSTEM_PROMPT,
+    REVIEW_SYSTEM_PROMPT,
+    buildReviewPrompt
 } from "./utils/prompts";
 import { defaultOptions } from './utils/default-options';
+import { Finding, REVIEW_SCHEMA } from './utils/review';
+import { annotateDiff } from './utils/diff';
 
-interface IModel {
+export interface IModel {
     id: string;
     object: string;
     created: number;
@@ -98,6 +102,35 @@ class Reviewer {
         return this.complete(generateSubmitCodeAssistanceModePrompt(code));
     }
 
+    // Structured review: returns typed findings (severity/category/file/line/message/suggestion)
+    // via OpenAI Structured Outputs. Chat models only — instruct models cannot enforce a schema.
+    // Pass { asDiff: true } to review a unified diff so findings carry file+line for inline comments.
+    async review(input: string, options: { asDiff?: boolean } = {}): Promise<Finding[]> {
+        if (this.isInstruct()) {
+            throw new Error('review() requires a chat model; instruct models do not support structured output');
+        }
+        try {
+            // Tag added lines with real new-file line numbers so the model anchors findings correctly.
+            const payload = options.asDiff ? annotateDiff(input) : input;
+            const isReasoning = /^o\d/.test(this.model);
+            const response = await this.client.chat.completions.create({
+                model: this.model,
+                messages: [
+                    { role: 'system' as const, content: REVIEW_SYSTEM_PROMPT },
+                    { role: 'user' as const, content: buildReviewPrompt(payload, options.asDiff) },
+                ],
+                response_format: { type: 'json_schema', json_schema: REVIEW_SCHEMA },
+                ...(isReasoning
+                    ? { max_completion_tokens: this.maxTokens }
+                    : { max_tokens: this.maxTokens, temperature: this.modelOptions.temperature }),
+            });
+            const content = response.choices[0]?.message?.content ?? '{"findings":[]}';
+            return (JSON.parse(content).findings ?? []) as Finding[];
+        } catch (error: any) {
+            throw new Error(`OpenAI API error: ${error?.message || error}`);
+        }
+    }
+
     async getCurrentModels(): Promise<IModel[]> {
         try {
             const {data}: { data: IModel[] } = await this.client.get('/models');
@@ -165,6 +198,6 @@ class Reviewer {
     }
 }
 
-export {
-    Reviewer
-};
+export { Reviewer };
+export type { Finding, Severity, ReviewComment } from './utils/review';
+export { formatFindings, toReviewComments, hasBlockingFindings } from './utils/review';

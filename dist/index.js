@@ -23,12 +23,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Reviewer = void 0;
+exports.hasBlockingFindings = exports.toReviewComments = exports.formatFindings = exports.Reviewer = void 0;
 // https://platform.openai.com/docs/deprecations
 const openai_1 = __importDefault(require("openai"));
 const child_process_1 = require("child_process");
 const prompts_1 = require("./utils/prompts");
 const default_options_1 = require("./utils/default-options");
+const review_1 = require("./utils/review");
+const diff_1 = require("./utils/diff");
 class Reviewer {
     constructor(apiKey, model = 'gpt-4o-mini', maxTokens = 1500, defaultClassOptions = default_options_1.defaultOptions) {
         this.apiKey = apiKey;
@@ -78,6 +80,33 @@ class Reviewer {
     submitCodeAssistanceMode(code) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.complete((0, prompts_1.generateSubmitCodeAssistanceModePrompt)(code));
+        });
+    }
+    // Structured review: returns typed findings (severity/category/file/line/message/suggestion)
+    // via OpenAI Structured Outputs. Chat models only — instruct models cannot enforce a schema.
+    // Pass { asDiff: true } to review a unified diff so findings carry file+line for inline comments.
+    review(input_1) {
+        return __awaiter(this, arguments, void 0, function* (input, options = {}) {
+            var _a, _b, _c, _d;
+            if (this.isInstruct()) {
+                throw new Error('review() requires a chat model; instruct models do not support structured output');
+            }
+            try {
+                // Tag added lines with real new-file line numbers so the model anchors findings correctly.
+                const payload = options.asDiff ? (0, diff_1.annotateDiff)(input) : input;
+                const isReasoning = /^o\d/.test(this.model);
+                const response = yield this.client.chat.completions.create(Object.assign({ model: this.model, messages: [
+                        { role: 'system', content: prompts_1.REVIEW_SYSTEM_PROMPT },
+                        { role: 'user', content: (0, prompts_1.buildReviewPrompt)(payload, options.asDiff) },
+                    ], response_format: { type: 'json_schema', json_schema: review_1.REVIEW_SCHEMA } }, (isReasoning
+                    ? { max_completion_tokens: this.maxTokens }
+                    : { max_tokens: this.maxTokens, temperature: this.modelOptions.temperature })));
+                const content = (_c = (_b = (_a = response.choices[0]) === null || _a === void 0 ? void 0 : _a.message) === null || _b === void 0 ? void 0 : _b.content) !== null && _c !== void 0 ? _c : '{"findings":[]}';
+                return ((_d = JSON.parse(content).findings) !== null && _d !== void 0 ? _d : []);
+            }
+            catch (error) {
+                throw new Error(`OpenAI API error: ${(error === null || error === void 0 ? void 0 : error.message) || error}`);
+            }
         });
     }
     getCurrentModels() {
@@ -154,3 +183,7 @@ class Reviewer {
     }
 }
 exports.Reviewer = Reviewer;
+var review_2 = require("./utils/review");
+Object.defineProperty(exports, "formatFindings", { enumerable: true, get: function () { return review_2.formatFindings; } });
+Object.defineProperty(exports, "toReviewComments", { enumerable: true, get: function () { return review_2.toReviewComments; } });
+Object.defineProperty(exports, "hasBlockingFindings", { enumerable: true, get: function () { return review_2.hasBlockingFindings; } });
