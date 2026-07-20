@@ -35,7 +35,7 @@
     "@types/node": "^22.7.0",
     "nodemon": "^3.1.4",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.4"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "openai": "^6.9.1"
