@@ -8,7 +8,8 @@ import {
     generateSecurityAnalysisPrompt,
     generateSubmitCodeAssistanceModePrompt,
     generateSubmitCodePrompt,
-    generateTestsPrompt
+    generateTestsPrompt,
+    SYSTEM_PROMPT
 } from "./utils/prompts";
 import { defaultOptions } from './utils/default-options';
 
@@ -25,9 +26,6 @@ interface IDefaultOptions  {
     frequency_penalty: number;
     presence_penalty: number;
     n: number;
-    best_of: number;
-    logprobs: null;
-    echo: boolean;
     stop?: string[];
 }
 
@@ -39,7 +37,7 @@ class Reviewer {
     private readonly maxTokens;
     private readonly modelOptions;
 
-    constructor(apiKey: string, model = 'gpt-3.5-turbo-instruct', maxTokens = 400, defaultClassOptions: IDefaultOptions = defaultOptions) {
+    constructor(apiKey: string, model = 'gpt-4o-mini', maxTokens = 1500, defaultClassOptions: IDefaultOptions = defaultOptions) {
         this.apiKey = apiKey;
         this.model = model;
         this.maxTokens = maxTokens;
@@ -50,36 +48,54 @@ class Reviewer {
         });
     }
 
-    async submitCode(code: string): Promise<string | undefined> {
-        try {
-            const response = await this.client.completions.create({
-                prompt: generateSubmitCodePrompt(code),
-                model: this.model,
-                max_tokens: this.maxTokens,
-                ...this.modelOptions,
-            });
+    // True for legacy text-completion models (e.g. gpt-3.5-turbo-instruct), which
+    // must go through the old Completions API rather than Chat Completions.
+    private isInstruct(): boolean {
+        return this.model.endsWith('-instruct');
+    }
 
-            return response.choices[0].text;
-        } catch (error: Error | any) {
-            console.info('Request available models by getCurrentModels()');
-            throw new Error(`OpenAI API error: ${error.message}`);
+    // Single entry point for every prompt. Routes to Chat Completions by default and
+    // falls back to the legacy Completions API for instruct models, so callers that
+    // still pass an instruct model keep working. Returns the model's text output.
+    private async complete(userPrompt: string, overrides: Record<string, any> = {}): Promise<string> {
+        try {
+            if (this.isInstruct()) {
+                const response: any = await this.client.completions.create({
+                    model: this.model,
+                    prompt: userPrompt,
+                    max_tokens: this.maxTokens,
+                    ...this.modelOptions,
+                    ...overrides,
+                });
+                return response.choices[0]?.text ?? '';
+            }
+
+            // Reasoning models (o1/o3/…) use `max_completion_tokens` and reject `temperature`/`top_p`.
+            const isReasoning = /^o\d/.test(this.model);
+            const { temperature, top_p, ...reasoningSafeOptions } = this.modelOptions;
+            const response = await this.client.chat.completions.create({
+                model: this.model,
+                messages: [
+                    { role: 'system' as const, content: SYSTEM_PROMPT },
+                    { role: 'user' as const, content: userPrompt },
+                ],
+                ...(isReasoning
+                    ? { max_completion_tokens: this.maxTokens, ...reasoningSafeOptions }
+                    : { max_tokens: this.maxTokens, ...this.modelOptions }),
+                ...overrides,
+            });
+            return response.choices[0]?.message?.content ?? '';
+        } catch (error: any) {
+            throw new Error(`OpenAI API error: ${error?.message || error}`);
         }
     }
 
-    async submitCodeAssistanceMode(code: string): Promise<string | undefined> {
-        try {
-            const response: any = await this.client.completions.create({
-                prompt: generateSubmitCodeAssistanceModePrompt(code),
-                model: this.model,
-                max_tokens: this.maxTokens,
-                ...this.modelOptions,
-            });
+    async submitCode(code: string): Promise<string | undefined> {
+        return this.complete(generateSubmitCodePrompt(code));
+    }
 
-            return response.choices[0].text;
-        } catch (error: Error | any) {
-            console.info('Request available models by getCurrentModels()');
-            throw new Error(`OpenAI API error: ${error.message}`);
-        }
+    async submitCodeAssistanceMode(code: string): Promise<string | undefined> {
+        return this.complete(generateSubmitCodeAssistanceModePrompt(code));
     }
 
     async getCurrentModels(): Promise<IModel[]> {
@@ -108,112 +124,44 @@ class Reviewer {
     }
 
     async generateDocumentation(code: string): Promise<string> {
-        try {
-            const response = await this.client.completions.create({
-                prompt: generateDocumentationPrompt(code),
-                model: this.model,
-                ...this.modelOptions,
-                max_tokens: this.maxTokens,
-                temperature: 0.5,
-                n: 1,
-                stop: ["*/"]
-            });
+        const content = await this.complete(generateDocumentationPrompt(code), {
+            temperature: 0.5,
+            n: 1,
+            stop: ["*/"],
+        });
 
-            if (response.choices && response.choices.length > 0) {
-                let documentation = response.choices[0].text;
-
-                if (!documentation.startsWith('/**')) {
-                    documentation = `/**\n${documentation}`;
-                }
-
-                if (!documentation.endsWith('*/')) {
-                    documentation = `${documentation}\n*/`;
-                }
-
-                return documentation
-            } else {
-                return 'No documentation generated by OpenAI API';
-            }
-        } catch (error: Error | unknown | any) {
-            throw new Error(`OpenAI API error: ${error.message || error}`);
+        if (!content) {
+            return 'No documentation generated by OpenAI API';
         }
+
+        let documentation = content;
+        if (!documentation.startsWith('/**')) {
+            documentation = `/**\n${documentation}`;
+        }
+        if (!documentation.endsWith('*/')) {
+            documentation = `${documentation}\n*/`;
+        }
+        return documentation;
     }
 
     async optimizeCode(code: string): Promise<string> {
-        try {
-            const response = await this.client.completions.create({
-                prompt: generateOptimizeCodePrompt(code),
-                model: this.model,
-                max_tokens: this.maxTokens,
-                ...this.modelOptions,
-            });
-
-            return response.choices[0].text;
-        } catch (error: Error | any) {
-            throw new Error(`OpenAI API error: ${error.message}`);
-        }
+        return this.complete(generateOptimizeCodePrompt(code));
     }
 
     async generateTests(code: string): Promise<string> {
-        try {
-            const response = await this.client.completions.create({
-                prompt: generateTestsPrompt(code),
-                model: this.model,
-                max_tokens: this.maxTokens,
-                ...this.modelOptions,
-                temperature: 0.5,
-                n: 1,
-            });
-            return response.choices[0].text;
-        } catch (error: Error | any) {
-            throw new Error(`OpenAI API error: ${error.message}`);
-        }
+        return this.complete(generateTestsPrompt(code), { temperature: 0.5, n: 1 });
     }
 
     async securityAnalysis(code: string): Promise<string> {
-        try {
-            const response = await this.client.completions.create({
-                prompt:generateSecurityAnalysisPrompt(code),
-                model: this.model,
-                max_tokens: this.maxTokens,
-                ...this.modelOptions,
-            });
-            return response.choices[0].text;
-        } catch (error: Error | any) {
-            throw new Error(`OpenAI API error: ${error.message}`);
-        }
+        return this.complete(generateSecurityAnalysisPrompt(code));
     }
 
     async codeStyleRecommendations(code: string): Promise<string> {
-        try {
-            const response = await this.client.completions.create({
-                prompt: generateCodeStyleRecommendationsPrompt(code),
-                model: this.model,
-                max_tokens: this.maxTokens,
-                ...this.modelOptions,
-                temperature: 0.5,
-                n: 1,
-            });
-            return response.choices[0].text;
-        } catch (error: Error | any) {
-            throw new Error(`OpenAI API error: ${error.message}`);
-        }
+        return this.complete(generateCodeStyleRecommendationsPrompt(code), { temperature: 0.5, n: 1 });
     }
 
     async historicalAnalysis(repoPathOrDiff: string): Promise<string> {
-        try {
-            const response = await this.client.completions.create({
-                prompt: generateHistoricalAnalysisPrompt(repoPathOrDiff),
-                model: this.model,
-                max_tokens: this.maxTokens,
-                ...this.modelOptions,
-                temperature: 0.5,
-                n: 1,
-            });
-            return response.choices[0].text;
-        } catch (error: Error | any) {
-            throw new Error(`OpenAI API error: ${error.message}`);
-        }
+        return this.complete(generateHistoricalAnalysisPrompt(repoPathOrDiff), { temperature: 0.5, n: 1 });
     }
 }
 

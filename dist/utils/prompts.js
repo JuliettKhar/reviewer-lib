@@ -1,6 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateHistoricalAnalysisPrompt = exports.generateCodeStyleRecommendationsPrompt = exports.generateSecurityAnalysisPrompt = exports.generateTestsPrompt = exports.generateOptimizeCodePrompt = exports.generateSubmitCodeAssistanceModePrompt = exports.generateSubmitCodePrompt = exports.generateDocumentationPrompt = void 0;
+exports.generateHistoricalAnalysisPrompt = exports.generateCodeStyleRecommendationsPrompt = exports.generateSecurityAnalysisPrompt = exports.generateTestsPrompt = exports.generateOptimizeCodePrompt = exports.generateSubmitCodeAssistanceModePrompt = exports.generateSubmitCodePrompt = exports.generateDocumentationPrompt = exports.SYSTEM_PROMPT = void 0;
+// Shared system message for the Chat Completions engine. It sets a senior-engineer
+// persona but stays task-agnostic, so it fits every method (review, generate, optimize,
+// document) — the task-specific instructions live in each user prompt below.
+exports.SYSTEM_PROMPT = 'You are a senior software engineer. Follow the user\'s instructions precisely and ' +
+    'return only the requested output, without preamble or markdown code fences unless asked.';
 const generateDocumentationPrompt = (code) => `
     Generate detailed JSDoc documentation for the following JavaScript code snippet. Only include documentation if the code contains functions, classes, or other elements that require JSDoc annotations. If there is nothing to document, return "No documentation needed".
 

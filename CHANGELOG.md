@@ -4,6 +4,27 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-07-20
+
+### ⚠ BREAKING CHANGES
+- **Default model changed to `gpt-4o-mini`** (was `gpt-3.5-turbo-instruct`) and the engine
+  now uses the **Chat Completions API** by default. Output quality and wording change
+  accordingly. Instruct models (any name ending in `-instruct`) still work and are routed
+  to the legacy Completions API automatically.
+- **`IDefaultOptions` no longer includes `best_of`, `logprobs`, or `echo`** (Completions-only
+  fields). Code that passed a custom options object with these keys must drop them.
+- Default `maxTokens` raised from `400` to `1500` (reviews were being truncated).
+
+### Changed
+- All review/generation methods go through a single internal `complete()` router
+  (Chat by default, legacy Completions for `*-instruct` models), removing duplicated call sites.
+- Prompts now use a system + user message split via a shared `SYSTEM_PROMPT` persona.
+- Default review temperature lowered to `0.2` for more deterministic output.
+
+### Added
+- Automatic handling for reasoning models (`o1`/`o3`/…): uses `max_completion_tokens` and
+  omits `temperature`/`top_p`.
+
 ## [2.0.0] - 2026-07-20
 
 ### ⚠ BREAKING CHANGES
@@ -31,4 +52,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI now runs on Node 20 and executes the test suite on every pull request.
 - Dependabot groups minor/patch updates into a single PR and now also covers GitHub Actions.
 
+[3.0.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.0.0
 [2.0.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v2.0.0

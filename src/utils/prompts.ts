@@ -1,3 +1,10 @@
+// Shared system message for the Chat Completions engine. It sets a senior-engineer
+// persona but stays task-agnostic, so it fits every method (review, generate, optimize,
+// document) — the task-specific instructions live in each user prompt below.
+export const SYSTEM_PROMPT =
+    'You are a senior software engineer. Follow the user\'s instructions precisely and ' +
+    'return only the requested output, without preamble or markdown code fences unless asked.';
+
 export const generateDocumentationPrompt = (code: string) => `
     Generate detailed JSDoc documentation for the following JavaScript code snippet. Only include documentation if the code contains functions, classes, or other elements that require JSDoc annotations. If there is nothing to document, return "No documentation needed".
 
