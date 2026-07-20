@@ -44,6 +44,26 @@ reviewer.submitCodeAssistanceMode(code)
    });
 ```
 
+### Structured review (`review`)
+`review()` returns typed findings instead of free text (chat models only), ready for
+inline PR comments or a CI gate:
+
+```typescript
+import { Reviewer, formatFindings, toReviewComments, hasBlockingFindings } from 'reviewer-lib';
+
+const reviewer = new Reviewer(apiKey); // default model: gpt-4o-mini
+
+// Pass asDiff: true to review a unified diff — findings then carry file + line.
+const findings = await reviewer.review(diff, { asDiff: true });
+
+console.log(formatFindings(findings));        // markdown summary for a PR comment
+const comments = toReviewComments(findings);  // [{ path, line, body }] for GitHub inline comments
+if (hasBlockingFindings(findings, 'high')) process.exit(1); // fail CI on high+ severity
+```
+
+Each `Finding` has: `severity` (`critical` | `high` | `medium` | `low`), `category`,
+`file`, `line`, `message`, and `suggestion`.
+
 in CI/CD:
 1. Create file and set up instance. `./review.mjs`
 ```typescript
@@ -154,6 +174,7 @@ reviewer.submitCodeAssistanceMode(code).then(suggestions => {
 });
 ```
 Other Functions
+- `review(input: string, options?: { asDiff?: boolean })`: Structured review returning `Finding[]` via OpenAI Structured Outputs (chat models only). See [Structured review](#structured-review-review) above.
 - `submitCode(code: string)`: Function, analyzes and provides recommendations for improving the code. Uses the Chat Completions API by default; if the configured model is an instruct model (`*-instruct`), it routes to the legacy Completions API instead.
 - `getCurrentModels`: Function, gets list of available AI models.
 - `historicalAnalysis(repoPath: string)`: A feature that analyzes the history of code changes and makes recommendations for improvements based on past changes.

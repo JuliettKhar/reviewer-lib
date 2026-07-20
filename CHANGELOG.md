@@ -4,6 +4,26 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-07-20
+
+### Added
+- **`review(input, { asDiff })`** — structured review powered by OpenAI Structured Outputs.
+  Returns typed `Finding[]` (`severity`, `category`, `file`, `line`, `message`, `suggestion`)
+  instead of free text. Chat models only. With `asDiff: true` findings carry file + line so
+  they can become inline PR comments.
+- Helpers for PR integration: `formatFindings()` (markdown summary), `toReviewComments()`
+  (GitHub inline-comment payloads), and `hasBlockingFindings()` (CI severity gate).
+- In `asDiff` mode the diff is annotated with real new-file line numbers (`[path:line]` tags)
+  and the model is instructed to copy them verbatim, so findings anchor to correct lines
+  instead of being estimated from hunk headers. Severity guidance was also tightened to avoid
+  inflated ratings.
+- Exported types: `Finding`, `Severity`, `ReviewComment`, `IModel`.
+
+### Fixed
+- Type declarations are now generated automatically (`declaration: true`) and the package
+  `types` field points at `dist/index.d.ts`. Previously `types` referenced a hand-written
+  `index.d.ts` that was **not included in the published tarball**, so consumers got no types.
+
 ## [3.0.0] - 2026-07-20
 
 ### ⚠ BREAKING CHANGES
@@ -52,5 +72,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI now runs on Node 20 and executes the test suite on every pull request.
 - Dependabot groups minor/patch updates into a single PR and now also covers GitHub Actions.
 
+[3.1.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.1.0
 [3.0.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.0.0
 [2.0.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v2.0.0
