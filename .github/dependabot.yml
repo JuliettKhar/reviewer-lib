@@ -9,3 +9,10 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "monthly"
+    groups:
+      # Bundle all minor and patch updates into a single PR.
+      # Major updates stay as separate PRs so they can be reviewed individually.
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
