@@ -52,11 +52,11 @@ class Reviewer {
 
     async submitCode(code: string): Promise<string | undefined> {
         try {
-            const response: any = await this.client.post(`/engines/${this.model}/completions`, {
-                body: {
-                    prompt: generateSubmitCodePrompt(code),
-                    max_tokens: this.maxTokens,
-                },
+            const response = await this.client.completions.create({
+                prompt: generateSubmitCodePrompt(code),
+                model: this.model,
+                max_tokens: this.maxTokens,
+                ...this.modelOptions,
             });
 
             return response.choices[0].text;
