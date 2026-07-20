@@ -31,12 +31,7 @@ class Reviewer {
     submitCode(code) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const response = yield this.client.post(`/engines/${this.model}/completions`, {
-                    body: {
-                        prompt: (0, prompts_1.generateSubmitCodePrompt)(code),
-                        max_tokens: this.maxTokens,
-                    },
-                });
+                const response = yield this.client.completions.create(Object.assign({ prompt: (0, prompts_1.generateSubmitCodePrompt)(code), model: this.model, max_tokens: this.maxTokens }, this.modelOptions));
                 return response.choices[0].text;
             }
             catch (error) {
