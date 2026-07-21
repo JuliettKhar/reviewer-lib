@@ -2,6 +2,8 @@
 An automated code review tool that uses OpenAI to analyze and provide 
 recommendations for code improvement and commenting in PR when received message from AI.
 
+Works with code in any language (Node is only needed to run it).
+
 [//]: # (![Forks]&#40;https://img.shields.io/github/forks/JuliettKhar/reviewer-lib&#41;)
 [//]: # (![Stars]&#40;https://img.shields.io/github/stars/JuliettKhar/reviewer-lib&#41;)
 [//]: # (![Coverage]&#40;https://img.shields.io/codecov/c/github/JuliettKhar/reviewer-lib&#41;)
@@ -54,7 +56,8 @@ import { Reviewer, formatFindings, toReviewComments, hasBlockingFindings } from 
 const reviewer = new Reviewer(apiKey); // default model: gpt-4o-mini
 
 // Pass asDiff: true to review a unified diff — findings then carry file + line.
-const findings = await reviewer.review(diff, { asDiff: true });
+// Optionally hint the language with `language` (e.g. 'typescript', 'python').
+const findings = await reviewer.review(diff, { asDiff: true, language: 'typescript' });
 
 console.log(formatFindings(findings));        // markdown summary for a PR comment
 const comments = toReviewComments(findings);  // [{ path, line, body }] for GitHub inline comments
@@ -80,9 +83,9 @@ npx reviewer-lib review --diff pr.diff --format json
 npx reviewer-lib review --pr 54 --post --fail-on high
 ```
 
-Flags: `--diff <file>`, `--pr <number>`, `--post`, `--code`, `--model <name>`,
-`--format text|json`, `--fail-on <severity>`, `--api-key <key>`, `--timeout <ms>`,
-`--max-retries <n>`. Run `npx reviewer-lib --help` for details.
+Flags: `--diff <file>`, `--pr <number>`, `--post`, `--code`, `--lang <language>`,
+`--model <name>`, `--format text|json`, `--fail-on <severity>`, `--api-key <key>`,
+`--timeout <ms>`, `--max-retries <n>`. Run `npx reviewer-lib --help` for details.
 
 ### Use as a GitHub Action
 Add AI review to any repository in a few lines. The action reads the PR diff and posts

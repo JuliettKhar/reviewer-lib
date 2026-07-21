@@ -28,17 +28,19 @@ export const REVIEW_SYSTEM_PROMPT =
 // Builds the user message for review(). In diff mode the input is expected to be
 // annotated by annotateDiff(): each added line is prefixed with a `[path:line]` tag, and
 // the model must copy `file`/`line` verbatim from that tag so findings anchor to real lines.
-export const buildReviewPrompt = (input: string, asDiff = false) =>
-    asDiff
-        ? 'Review the following unified diff. Only comment on lines tagged with a `[path:line]` ' +
+export const buildReviewPrompt = (input: string, asDiff = false, language?: string) => {
+    const lang = language ? `The code is written in ${language}. ` : '';
+    return asDiff
+        ? `${lang}Review the following unified diff. Only comment on lines tagged with a \`[path:line]\` ` +
           'marker (these are the added lines). For each finding, set "file" and "line" to exactly ' +
           'the values from that line\'s `[path:line]` tag — never guess or compute line numbers.' +
           `\n\n${input}`
-        : 'Review the following code and report substantive issues. Set "file" and "line" to ' +
+        : `${lang}Review the following code and report substantive issues. Set "file" and "line" to ` +
           `null since no file context is available.\n\n${input}`;
+};
 
 export const generateDocumentationPrompt = (code: string) => `
-    Generate detailed JSDoc documentation for the following JavaScript code snippet. Only include documentation if the code contains functions, classes, or other elements that require JSDoc annotations. If there is nothing to document, return "No documentation needed".
+    Generate detailed JSDoc documentation for the following code snippet. Only include documentation if the code contains functions, classes, or other elements that require JSDoc annotations. If there is nothing to document, return "No documentation needed".
 
     Example:
     /**
@@ -59,11 +61,11 @@ export const generateSubmitCodePrompt = (code: string) => `
 Review the part of code:
 ${code}
 
-Provide feedback how this part of JavaScript code can be improved from optimal perspective:
+Provide feedback how this part of code can be improved from an optimal perspective:
 `;
 
 export const generateSubmitCodeAssistanceModePrompt = (code: string) => `
-Review the following JavaScript code. Identify potential bugs, improvements, and anti-patterns:
+Review the following code. Identify potential bugs, improvements, and anti-patterns:
 ${code}
 
 Code review report:
@@ -74,7 +76,7 @@ ${code}
 If there is nothing to optimize, return "No optimization needed.
 Optimized Code:`;
 
-export const generateTestsPrompt = (code: string) => `Generate js jest unit tests for the following code:
+export const generateTestsPrompt = (code: string) => `Generate unit tests for the following code:
 ${code}
 Unit Tests:`;
 

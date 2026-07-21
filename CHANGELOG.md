@@ -4,6 +4,17 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - 2026-07-21
+
+### Added
+- **Language hint** — `review()` accepts a `language` option (e.g. `{ language: 'typescript' }`)
+  telling the model which language the code is in. CLI flag: `--lang <language>`.
+
+### Changed
+- Removed the hardcoded "JavaScript" wording from the built-in prompts (`submitCode`,
+  `submitCodeAssistanceMode`, `generateDocumentation`, `generateTests`) so they read naturally
+  for any language, not just JS.
+
 ## [3.3.0] - 2026-07-21
 
 ### Added
@@ -100,6 +111,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI now runs on Node 20 and executes the test suite on every pull request.
 - Dependabot groups minor/patch updates into a single PR and now also covers GitHub Actions.
 
+[3.4.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.4.0
 [3.3.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.3.0
 [3.2.1]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.2.1
 [3.2.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.2.0

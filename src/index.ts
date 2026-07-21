@@ -120,7 +120,7 @@ class Reviewer {
     // Structured review: returns typed findings (severity/category/file/line/message/suggestion)
     // via OpenAI Structured Outputs. Chat models only — instruct models cannot enforce a schema.
     // Pass { asDiff: true } to review a unified diff so findings carry file+line for inline comments.
-    async review(input: string, options: { asDiff?: boolean } = {}): Promise<Finding[]> {
+    async review(input: string, options: { asDiff?: boolean; language?: string } = {}): Promise<Finding[]> {
         if (this.isInstruct()) {
             throw new Error('review() requires a chat model; instruct models do not support structured output');
         }
@@ -132,7 +132,7 @@ class Reviewer {
                 model: this.model,
                 messages: [
                     { role: 'system' as const, content: REVIEW_SYSTEM_PROMPT },
-                    { role: 'user' as const, content: buildReviewPrompt(payload, options.asDiff) },
+                    { role: 'user' as const, content: buildReviewPrompt(payload, options.asDiff, options.language) },
                 ],
                 response_format: { type: 'json_schema', json_schema: REVIEW_SCHEMA },
                 ...(isReasoning
