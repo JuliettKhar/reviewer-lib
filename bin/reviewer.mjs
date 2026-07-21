@@ -3,6 +3,7 @@
 // Imports the package's own build so `npx reviewer-lib review` works after install.
 import { readFileSync } from 'node:fs';
 import pkg from '../dist/index.js';
+import { parseArgs } from '../dist/utils/cli-args.js';
 
 const { Reviewer, formatFindings, toReviewComments, hasBlockingFindings } = pkg;
 
@@ -35,19 +36,6 @@ Examples:
   reviewer-lib review --diff pr.diff --format json
   reviewer-lib review --pr 54 --post --fail-on high
 `;
-
-function parseArgs(argv) {
-    const flags = new Set(['--post', '--code', '-h', '--help']);
-    const args = { _: [] };
-    for (let i = 0; i < argv.length; i++) {
-        const a = argv[i];
-        if (a === '-h' || a === '--help') args.help = true;
-        else if (flags.has(a)) args[a.replace(/^--/, '')] = true;
-        else if (a.startsWith('--')) args[a.slice(2)] = argv[++i];
-        else args._.push(a);
-    }
-    return args;
-}
 
 function fail(message) {
     console.error(`Error: ${message}`);

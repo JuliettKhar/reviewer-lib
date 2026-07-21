@@ -89,6 +89,18 @@ describe('Instruct routing (backward compatibility)', () => {
     });
 });
 
+describe('reasoning models (o-series)', () => {
+    it('submitCode sends max_completion_tokens and omits temperature/max_tokens', async () => {
+        mocks.chatCreate.mockResolvedValue(okChat('ok'));
+        await new Reviewer('sk-test', 'o3-mini').submitCode('code');
+
+        const arg = mocks.chatCreate.mock.calls[0][0];
+        expect(arg.max_completion_tokens).toBe(1500);
+        expect(arg.max_tokens).toBeUndefined();
+        expect(arg.temperature).toBeUndefined();
+    });
+});
+
 describe('generateDocumentation wrapping logic', () => {
     it('wraps bare text in a JSDoc block', async () => {
         mocks.chatCreate.mockResolvedValue(okChat('Adds two numbers.'));
