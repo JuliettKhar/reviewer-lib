@@ -4,6 +4,21 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2026-07-21
+
+### Added
+- **CLI** — the package now ships a `reviewer-lib` command (`bin/reviewer.mjs`), so a review
+  can be run without writing any glue code:
+  - `git diff main | npx reviewer-lib review --fail-on high`
+  - `npx reviewer-lib review --diff pr.diff --format json`
+  - `npx reviewer-lib review --pr 54 --post` (fetch a PR diff, post inline comments + summary)
+  - Flags: `--diff`, `--pr`, `--post`, `--code`, `--model`, `--format`, `--fail-on`, `--api-key`.
+
+### Changed
+- Tuned the review system prompt to suppress noise: no speculative/hedging findings
+  ("may/might/consider/verify that…") and no documentation/changelog/version nitpicks
+  unless they contradict the code. Keeps attention on real code defects.
+
 ## [3.1.0] - 2026-07-20
 
 ### Added
@@ -72,6 +87,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI now runs on Node 20 and executes the test suite on every pull request.
 - Dependabot groups minor/patch updates into a single PR and now also covers GitHub Actions.
 
+[3.2.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.2.0
 [3.1.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.1.0
 [3.0.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.0.0
 [2.0.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v2.0.0

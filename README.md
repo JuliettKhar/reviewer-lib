@@ -64,6 +64,25 @@ if (hasBlockingFindings(findings, 'high')) process.exit(1); // fail CI on high+ 
 Each `Finding` has: `severity` (`critical` | `high` | `medium` | `low`), `category`,
 `file`, `line`, `message`, and `suggestion`.
 
+### CLI
+The package ships a `reviewer-lib` command, so you can review without writing any glue code
+(`OPENAI_API_KEY` must be set):
+
+```shell
+# review your working changes locally
+git diff origin/main | npx reviewer-lib review --fail-on high
+
+# review a diff file as JSON
+npx reviewer-lib review --diff pr.diff --format json
+
+# in CI: fetch a PR diff and post inline comments + a summary
+#   (needs GITHUB_TOKEN and GITHUB_REPOSITORY)
+npx reviewer-lib review --pr 54 --post --fail-on high
+```
+
+Flags: `--diff <file>`, `--pr <number>`, `--post`, `--code`, `--model <name>`,
+`--format text|json`, `--fail-on <severity>`, `--api-key <key>`. Run `npx reviewer-lib --help` for details.
+
 in CI/CD:
 1. Create file and set up instance. `./review.mjs`
 ```typescript
