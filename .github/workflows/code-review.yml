@@ -1,8 +1,8 @@
 name: AI code review (manual)
 
 # Manual only: trigger from the Actions tab ("Run workflow"), enter a PR number.
-# Runs a structured review with the published reviewer-lib v3 and posts the results
-# (inline comments + summary) back to that pull request.
+# Dogfoods our own composite action (uses: ./), which runs the published reviewer-lib
+# CLI and posts inline comments + a summary back to that pull request.
 on:
   workflow_dispatch:
     inputs:
@@ -25,19 +25,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: AI review
+        uses: ./
         with:
-          node-version: '20.x'
-
-      - name: Install dependencies (pulls published reviewer-lib v3 via alias)
-        run: npm ci
-
-      - name: Review the PR and post results
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ inputs.pr_number }}
-          REVIEW_FAIL_ON: ${{ inputs.fail_on }}
-        run: node scripts/ci-post-review.mjs
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          pr-number: ${{ inputs.pr_number }}
+          fail-on: ${{ inputs.fail_on }}

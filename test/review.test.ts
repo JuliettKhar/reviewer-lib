@@ -89,6 +89,16 @@ describe('review() structured output', () => {
         mocks.chatCreate.mockRejectedValue(new Error('boom'));
         await expect(new Reviewer('sk-test').review('code')).rejects.toThrow('OpenAI API error: boom');
     });
+
+    it('uses max_completion_tokens and omits temperature for reasoning models', async () => {
+        mocks.chatCreate.mockResolvedValue(chatJson({ findings: [] }));
+        await new Reviewer('sk-test', 'o3-mini').review('code');
+
+        const arg = mocks.chatCreate.mock.calls[0][0];
+        expect(arg.max_completion_tokens).toBe(1500);
+        expect(arg.max_tokens).toBeUndefined();
+        expect(arg.temperature).toBeUndefined();
+    });
 });
 
 describe('formatFindings', () => {
