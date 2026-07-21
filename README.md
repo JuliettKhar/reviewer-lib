@@ -81,7 +81,8 @@ npx reviewer-lib review --pr 54 --post --fail-on high
 ```
 
 Flags: `--diff <file>`, `--pr <number>`, `--post`, `--code`, `--model <name>`,
-`--format text|json`, `--fail-on <severity>`, `--api-key <key>`. Run `npx reviewer-lib --help` for details.
+`--format text|json`, `--fail-on <severity>`, `--api-key <key>`, `--timeout <ms>`,
+`--max-retries <n>`. Run `npx reviewer-lib --help` for details.
 
 ### Use as a GitHub Action
 Add AI review to any repository in a few lines. The action reads the PR diff and posts
@@ -155,6 +156,7 @@ git diff origin/main...HEAD | npx reviewer-lib review --fail-on high || {
 - `apiKey (String)`: Your OpenAI API key.
 - `model (String)`: The model you want to use (default 'gpt-4o-mini'). Instruct models (`*-instruct`) route to the legacy Completions API automatically.
 - `maxTokens (Number)`: The maximum number of tokens for the response (default 1500).
+- `clientOptions (Object)`: Reliability options passed to the OpenAI client — `maxRetries` (default 3) and `timeout` in ms (default 120000). The SDK retries transient failures (429/5xx) with exponential backoff automatically.
 - `code (String)`: The code to analyze. Returns Promise<String>: Suggestions for improving the code.
 - `temperature?`: Controls the creativity and variety of the generated text. Values from 0 to 1.
 - `n?`: The number of text variants the model should generate. The default value is 1.
