@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.0] - 2026-07-21
+
+### Added
+- **Large-diff chunking** — `review()` with `asDiff` now splits a diff larger than
+  `maxChunkChars` (default 20000) into one review per file, runs them with bounded
+  concurrency, and merges the findings. This keeps each request focused and avoids
+  truncating the model's JSON output on big pull requests. Configurable via the
+  `maxChunkChars` option; small diffs are unaffected (single request).
+
 ## [3.4.0] - 2026-07-21
 
 ### Added
@@ -111,6 +120,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI now runs on Node 20 and executes the test suite on every pull request.
 - Dependabot groups minor/patch updates into a single PR and now also covers GitHub Actions.
 
+[3.5.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.5.0
 [3.4.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.4.0
 [3.3.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.3.0
 [3.2.1]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.2.1

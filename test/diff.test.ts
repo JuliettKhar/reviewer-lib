@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { annotateDiff } from '../src/utils/diff';
+import { annotateDiff, splitDiffByFile } from '../src/utils/diff';
 
 const DIFF = [
     'diff --git a/src/foo.ts b/src/foo.ts',
@@ -31,5 +31,38 @@ describe('annotateDiff', () => {
         // ` const d = 5;` is the 4th line of the new file, after two added lines.
         const addedLineNumbers = [...annotated.matchAll(/\[src\/foo\.ts:(\d+)\] \+/g)].map((m) => m[1]);
         expect(addedLineNumbers).toEqual(['2', '3']);
+    });
+});
+
+describe('splitDiffByFile', () => {
+    const twoFiles = [
+        'diff --git a/a.ts b/a.ts',
+        'index 1..2 100644',
+        '--- a/a.ts',
+        '+++ b/a.ts',
+        '@@ -1 +1 @@',
+        '+const a = 1;',
+        'diff --git a/b.ts b/b.ts',
+        '--- a/b.ts',
+        '+++ b/b.ts',
+        '@@ -1 +1 @@',
+        '+const b = 2;',
+    ].join('\n');
+
+    it('splits into one self-contained chunk per file', () => {
+        const chunks = splitDiffByFile(twoFiles);
+        expect(chunks).toHaveLength(2);
+        expect(chunks[0].startsWith('diff --git a/a.ts')).toBe(true);
+        expect(chunks[0]).toContain('+const a = 1;');
+        expect(chunks[0]).not.toContain('b.ts');
+        expect(chunks[1]).toContain('a/b.ts');
+    });
+
+    it('returns a single chunk for a one-file diff', () => {
+        expect(splitDiffByFile('diff --git a/x b/x\n+foo')).toHaveLength(1);
+    });
+
+    it('returns [] when there are no file headers', () => {
+        expect(splitDiffByFile('not a diff')).toEqual([]);
     });
 });

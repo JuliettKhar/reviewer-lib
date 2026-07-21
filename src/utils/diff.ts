@@ -1,3 +1,24 @@
+// Splits a unified diff into one self-contained diff per file, each starting at its
+// `diff --git` header. Used to review very large diffs file-by-file (map-reduce), which
+// keeps each request focused and avoids truncating the model's output. Any preamble before
+// the first `diff --git` is dropped. Returns [] for a diff with no file headers.
+export function splitDiffByFile(diff: string): string[] {
+    const chunks: string[] = [];
+    let current: string[] | null = null;
+
+    for (const line of diff.split('\n')) {
+        if (line.startsWith('diff --git ')) {
+            if (current) chunks.push(current.join('\n'));
+            current = [line];
+        } else if (current) {
+            current.push(line);
+        }
+    }
+    if (current) chunks.push(current.join('\n'));
+
+    return chunks;
+}
+
 // Annotates a unified diff so every ADDED line is tagged with its real line number in
 // the new file: `[path:line] +<content>`. review() feeds this to the model and instructs
 // it to take `line` only from these tags — which makes findings anchor to real lines

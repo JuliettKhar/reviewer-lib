@@ -67,6 +67,9 @@ if (hasBlockingFindings(findings, 'high')) process.exit(1); // fail CI on high+ 
 Each `Finding` has: `severity` (`critical` | `high` | `medium` | `low`), `category`,
 `file`, `line`, `message`, and `suggestion`.
 
+Large diffs are reviewed file-by-file automatically and the findings merged (tune the
+threshold with the `maxChunkChars` option, default 20000).
+
 ### CLI
 The package ships a `reviewer-lib` command, so you can review without writing any glue code
 (`OPENAI_API_KEY` must be set):
