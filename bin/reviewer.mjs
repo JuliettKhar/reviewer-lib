@@ -19,6 +19,7 @@ Input (pick one; defaults to stdin):
 
 Options:
   --code             Treat the input as raw code instead of a diff
+  --lang <language>  Hint the source language (e.g. typescript, python)
   --model <name>     Model to use (default: gpt-4o-mini)
   --format <fmt>     Output format: text (default) | json
   --fail-on <sev>    Exit 1 if any finding is >= severity (critical|high|medium|low)
@@ -110,7 +111,7 @@ async function main() {
     if (args.timeout) clientOptions.timeout = Number(args.timeout);
     if (args['max-retries']) clientOptions.maxRetries = Number(args['max-retries']);
     const reviewer = new Reviewer(apiKey, args.model, undefined, undefined, clientOptions);
-    const findings = await reviewer.review(input, { asDiff: !args.code });
+    const findings = await reviewer.review(input, { asDiff: !args.code, language: args.lang });
 
     // Output.
     if (args.format === 'json') console.log(JSON.stringify(findings, null, 2));

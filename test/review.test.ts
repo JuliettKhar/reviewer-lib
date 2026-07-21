@@ -73,6 +73,13 @@ describe('review() structured output', () => {
         expect(content).toContain('[x.ts:2] +const b = 2;');  // annotated added line
     });
 
+    it('includes a language hint in the prompt when language is provided', async () => {
+        mocks.chatCreate.mockResolvedValue(chatJson({ findings: [] }));
+        await new Reviewer('sk-test').review('const a = 1;', { language: 'typescript' });
+
+        expect(mocks.chatCreate.mock.calls[0][0].messages[1].content).toContain('written in typescript');
+    });
+
     it('returns [] when the model returns no content', async () => {
         mocks.chatCreate.mockResolvedValue({ choices: [{ message: { content: null } }] });
         expect(await new Reviewer('sk-test').review('code')).toEqual([]);
