@@ -106,6 +106,23 @@ describe('review() structured output', () => {
         expect(arg.max_tokens).toBeUndefined();
         expect(arg.temperature).toBeUndefined();
     });
+
+    it('chunks a large multi-file diff and merges findings', async () => {
+        const diff = [
+            'diff --git a/a.ts b/a.ts', '--- a/a.ts', '+++ b/a.ts', '@@ -1 +1 @@', '+const a = 1;',
+            'diff --git a/b.ts b/b.ts', '--- a/b.ts', '+++ b/b.ts', '@@ -1 +1 @@', '+const b = 2;',
+        ].join('\n');
+        mocks.chatCreate
+            .mockResolvedValueOnce(chatJson({ findings: [sampleFinding({ file: 'a.ts' })] }))
+            .mockResolvedValueOnce(chatJson({ findings: [sampleFinding({ file: 'b.ts' })] }));
+
+        // maxChunkChars tiny → force per-file chunking
+        const findings = await new Reviewer('sk-test').review(diff, { asDiff: true, maxChunkChars: 10 });
+
+        expect(mocks.chatCreate).toHaveBeenCalledTimes(2);
+        expect(findings).toHaveLength(2);
+        expect(findings.map((f) => f.file).sort()).toEqual(['a.ts', 'b.ts']);
+    });
 });
 
 describe('formatFindings', () => {

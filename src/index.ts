@@ -15,7 +15,7 @@ import {
 } from "./utils/prompts";
 import { defaultOptions } from './utils/default-options';
 import { Finding, REVIEW_SCHEMA } from './utils/review';
-import { annotateDiff } from './utils/diff';
+import { annotateDiff, splitDiffByFile } from './utils/diff';
 
 export interface IModel {
     id: string;
@@ -120,10 +120,29 @@ class Reviewer {
     // Structured review: returns typed findings (severity/category/file/line/message/suggestion)
     // via OpenAI Structured Outputs. Chat models only — instruct models cannot enforce a schema.
     // Pass { asDiff: true } to review a unified diff so findings carry file+line for inline comments.
-    async review(input: string, options: { asDiff?: boolean; language?: string } = {}): Promise<Finding[]> {
+    // Large diffs (over maxChunkChars, default 20000) are reviewed file-by-file and merged, which
+    // keeps each request focused and avoids truncating the model's JSON output.
+    async review(
+        input: string,
+        options: { asDiff?: boolean; language?: string; maxChunkChars?: number } = {},
+    ): Promise<Finding[]> {
         if (this.isInstruct()) {
             throw new Error('review() requires a chat model; instruct models do not support structured output');
         }
+
+        const maxChunkChars = options.maxChunkChars ?? 20_000;
+        if (options.asDiff && input.length > maxChunkChars) {
+            const chunks = splitDiffByFile(input);
+            if (chunks.length > 1) {
+                const perChunk = await this.mapLimit(chunks, 5, (chunk) => this.reviewOnce(chunk, options));
+                return perChunk.flat();
+            }
+        }
+        return this.reviewOnce(input, options);
+    }
+
+    // One structured-review request over a single payload (whole diff or one file's diff).
+    private async reviewOnce(input: string, options: { asDiff?: boolean; language?: string }): Promise<Finding[]> {
         try {
             // Tag added lines with real new-file line numbers so the model anchors findings correctly.
             const payload = options.asDiff ? annotateDiff(input) : input;
@@ -144,6 +163,20 @@ class Reviewer {
         } catch (error: any) {
             throw new Error(`OpenAI API error: ${error?.message || error}`);
         }
+    }
+
+    // Runs `fn` over `items` with at most `limit` in flight; preserves input order.
+    private async mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+        const results: R[] = new Array(items.length);
+        let next = 0;
+        const worker = async () => {
+            while (next < items.length) {
+                const index = next++;
+                results[index] = await fn(items[index]);
+            }
+        };
+        await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+        return results;
     }
 
     async getCurrentModels(): Promise<IModel[]> {
