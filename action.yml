@@ -1,0 +1,56 @@
+name: 'reviewer-lib code review'
+description: 'AI code review for pull requests — posts inline comments + a summary using reviewer-lib.'
+author: 'Julia Kharlamova'
+branding:
+  icon: 'check-circle'
+  color: 'purple'
+
+inputs:
+  openai-api-key:
+    description: 'OpenAI API key.'
+    required: true
+  github-token:
+    description: 'Token used to read the PR diff and post comments.'
+    required: false
+    default: ${{ github.token }}
+  pr-number:
+    description: 'Pull request number. Defaults to the PR from the triggering event.'
+    required: false
+    default: ''
+  fail-on:
+    description: 'Fail the job when a finding is at or above this severity (critical|high|medium|low). Empty = never fail.'
+    required: false
+    default: ''
+  model:
+    description: 'Model to use for the review.'
+    required: false
+    default: 'gpt-4o-mini'
+  version:
+    description: 'reviewer-lib version to run (npm dist-tag or version). Must be >= 3.2.0 (the CLI).'
+    required: false
+    default: 'latest'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Run reviewer-lib
+      shell: bash
+      env:
+        OPENAI_API_KEY: ${{ inputs.openai-api-key }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+      run: |
+        PR="${{ inputs.pr-number }}"
+        if [ -z "$PR" ]; then PR="${{ github.event.pull_request.number }}"; fi
+        if [ -z "$PR" ]; then
+          echo "::error::No PR number available — set the 'pr-number' input or run on a pull_request event."
+          exit 1
+        fi
+        ARGS=(review --pr "$PR" --post --model "${{ inputs.model }}")
+        if [ -n "${{ inputs.fail-on }}" ]; then ARGS+=(--fail-on "${{ inputs.fail-on }}"); fi
+        npx --yes "reviewer-lib@${{ inputs.version }}" "${ARGS[@]}"

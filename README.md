@@ -83,90 +83,71 @@ npx reviewer-lib review --pr 54 --post --fail-on high
 Flags: `--diff <file>`, `--pr <number>`, `--post`, `--code`, `--model <name>`,
 `--format text|json`, `--fail-on <severity>`, `--api-key <key>`. Run `npx reviewer-lib --help` for details.
 
-in CI/CD:
-1. Create file and set up instance. `./review.mjs`
-```typescript
-import { Reviewer} from 'reviewer-lib';
+### Use as a GitHub Action
+Add AI review to any repository in a few lines. The action reads the PR diff and posts
+inline comments plus a summary. Add `OPENAI_API_KEY` to the repo secrets and give the job
+`pull-requests: write` permission:
 
-const apiKey = process.env.OPENAI_API_KEY;
-if (!apiKey) {
-  console.error('Error: OPENAI_API_KEY is not set');
-  process.exit(1);
-}
-
-const reviewer = new Reviewer(apiKey);
-let code = '';
-
-process.stdin.on('data', chunk => {
-  code += chunk;
-});
-process.stdin.on('end', () => {
-  reviewer.submitCodeAssistanceMode(code)
-    .then((feedback: string) => {
-      console.log('Code Review Feedback:');
-      console.log(feedback);
-    })
-    .catch((error: Error | string) => {
-      console.error('Error:', error);
-      process.exit(1);
-    });
-});
-```
-2. Create workflow. `.github/workflows/code-review.yml`. Add $GITHUB_TOKEN and $OPENAI_API_KEY to your project secrets
 ```yaml
-name: Code Review with ChatGPT
-
+name: AI code review
 on:
   pull_request:
-    branches:
-      - master
+
+permissions:
+  pull-requests: write
 
 jobs:
   review:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - uses: JuliettKhar/reviewer-lib@v3
         with:
-          fetch-depth: 2
-
-      - name: Install jq
-        run: sudo apt-get install -y jq
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Get diff from PR
-        id: diff
-        run: |
-          git fetch origin
-          git diff origin/master HEAD > pr.diff
-
-      - name: Run code review
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          npm run build
-          node ./review.mjs < pr.diff > review_feedback.txt
-
-      - name: Post review feedback as a comment
-        env:
-          GITHUB_TOKEN: ${{ secrets.API_GITHUB_TOKEN }}
-        run: |
-          REVIEW_FEEDBACK=$(cat review_feedback.txt)
-          COMMENT_BODY=$(jq -n --arg body "$REVIEW_FEEDBACK" '{body: $body}')
-          PULL_REQUEST_NUMBER=${{ github.event.pull_request.number }}
-          curl -s -H "Authorization: token $GITHUB_TOKEN" -X POST -d "$COMMENT_BODY" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/$PULL_REQUEST_NUMBER/comments"
-
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          fail-on: high        # optional: fail the check on high+ findings
 ```
-3. Push code. Pipeline should create a job and comment the PR.
+
+Inputs: `openai-api-key` (required), `github-token` (default `${{ github.token }}`),
+`pr-number` (defaults to the event's PR), `fail-on`, `model` (default `gpt-4o-mini`),
+`version` (reviewer-lib version to run, default `latest`).
+
+To trigger it manually instead, use `workflow_dispatch` and pass `pr-number`.
+
+### Local usage (no CI)
+Don't want a pipeline? Run reviews straight from your terminal — no install needed
+(`npx` pulls the package on demand). Set your key once per shell:
+
+```shell
+export OPENAI_API_KEY=sk-...
+```
+
+Review your uncommitted changes:
+```shell
+git diff | npx reviewer-lib review
+```
+
+Review a whole branch before opening a PR (everything since `main`):
+```shell
+git diff main...HEAD | npx reviewer-lib review --fail-on high
+```
+
+Review a single file, or get machine-readable output:
+```shell
+git diff -- src/app.ts | npx reviewer-lib review
+git diff | npx reviewer-lib review --format json > review.json
+```
+
+Prefer a faster repeat experience? Install it globally: `npm i -g reviewer-lib`, then
+drop the `npx`. You can also pass the key inline with `--api-key` instead of the env var.
+
+Optional — review automatically before every push with a git hook. Save as
+`.git/hooks/pre-push` and `chmod +x` it:
+```sh
+#!/bin/sh
+git diff origin/main...HEAD | npx reviewer-lib review --fail-on high || {
+  echo "reviewer-lib found blocking issues — push aborted (use 'git push --no-verify' to override)."
+  exit 1
+}
+```
 
 ## API
 `new Reviewer(apiKey, model, maxTokens)`. Creates a new Reviewer instance.
