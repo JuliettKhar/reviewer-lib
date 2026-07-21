@@ -24,6 +24,8 @@ Options:
   --fail-on <sev>    Exit 1 if any finding is >= severity (critical|high|medium|low)
   --post             Post the review to the PR (requires --pr)
   --api-key <key>    OpenAI key (default: $OPENAI_API_KEY)
+  --timeout <ms>     Per-request timeout in ms (default: 120000)
+  --max-retries <n>  Retry attempts on transient errors (default: 3)
   -h, --help         Show this help
 
 Environment:
@@ -104,7 +106,10 @@ async function main() {
     }
 
     // Run the review.
-    const reviewer = new Reviewer(apiKey, args.model);
+    const clientOptions = {};
+    if (args.timeout) clientOptions.timeout = Number(args.timeout);
+    if (args['max-retries']) clientOptions.maxRetries = Number(args['max-retries']);
+    const reviewer = new Reviewer(apiKey, args.model, undefined, undefined, clientOptions);
     const findings = await reviewer.review(input, { asDiff: !args.code });
 
     // Output.

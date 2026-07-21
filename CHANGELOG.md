@@ -4,6 +4,16 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2026-07-21
+
+### Added
+- **Configurable reliability** — a fifth constructor argument `clientOptions` exposes
+  `maxRetries` (default 3) and `timeout` (default 120000 ms), passed through to the OpenAI
+  client. The SDK already retries transient failures (408/409/429/5xx) with exponential
+  backoff; this lets you tune it and caps hung requests (previously the SDK default was 10 min).
+  Exported type: `IClientOptions`.
+- CLI flags `--timeout <ms>` and `--max-retries <n>`.
+
 ## [3.2.1] - 2026-07-21
 
 ### Changed
@@ -90,6 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI now runs on Node 20 and executes the test suite on every pull request.
 - Dependabot groups minor/patch updates into a single PR and now also covers GitHub Actions.
 
+[3.3.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.3.0
 [3.2.1]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.2.1
 [3.2.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.2.0
 [3.1.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.1.0

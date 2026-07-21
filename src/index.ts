@@ -33,6 +33,13 @@ interface IDefaultOptions  {
     stop?: string[];
 }
 
+// Reliability knobs passed through to the OpenAI client. The SDK already retries
+// transient failures (408/409/429/5xx) with exponential backoff; these tune how hard.
+export interface IClientOptions {
+    maxRetries?: number; // retry attempts on transient errors (default 3)
+    timeout?: number;    // per-request timeout in ms (default 120000)
+}
+
 
 class Reviewer {
     private readonly apiKey;
@@ -41,7 +48,13 @@ class Reviewer {
     private readonly maxTokens;
     private readonly modelOptions;
 
-    constructor(apiKey: string, model = 'gpt-4o-mini', maxTokens = 1500, defaultClassOptions: IDefaultOptions = defaultOptions) {
+    constructor(
+        apiKey: string,
+        model = 'gpt-4o-mini',
+        maxTokens = 1500,
+        defaultClassOptions: IDefaultOptions = defaultOptions,
+        clientOptions: IClientOptions = {},
+    ) {
         this.apiKey = apiKey;
         this.model = model;
         this.maxTokens = maxTokens;
@@ -49,6 +62,8 @@ class Reviewer {
 
         this.client = new OpenAI({
             apiKey: this.apiKey,
+            maxRetries: clientOptions.maxRetries ?? 3,
+            timeout: clientOptions.timeout ?? 120_000,
         });
     }
 

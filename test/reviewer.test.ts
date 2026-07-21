@@ -34,9 +34,18 @@ beforeEach(() => {
 });
 
 describe('Reviewer constructor', () => {
-    it('passes the api key to the OpenAI client', () => {
+    it('passes the api key and default reliability options to the OpenAI client', () => {
         new Reviewer('sk-test-123');
-        expect(mocks.ctor).toHaveBeenCalledWith({ apiKey: 'sk-test-123' });
+        expect(mocks.ctor).toHaveBeenCalledWith(
+            expect.objectContaining({ apiKey: 'sk-test-123', maxRetries: 3, timeout: 120_000 }),
+        );
+    });
+
+    it('applies custom maxRetries and timeout', () => {
+        new Reviewer('sk-test', 'gpt-4o', 500, undefined, { maxRetries: 5, timeout: 30_000 });
+        expect(mocks.ctor).toHaveBeenCalledWith(
+            expect.objectContaining({ maxRetries: 5, timeout: 30_000 }),
+        );
     });
 
     it('applies default model (gpt-4o-mini) and maxTokens (1500)', async () => {
