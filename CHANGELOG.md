@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   truncating the model's JSON output on big pull requests. Configurable via the
   `maxChunkChars` option; small diffs are unaffected (single request).
 
+### Changed
+- Review prompt no longer flags "missing validation/guards/error handling" for values whose
+  handling lives outside the shown diff — it now assumes unseen surrounding code is correct.
+  Cuts a common false-positive class from diff-only reviews.
+
 ## [3.4.0] - 2026-07-21
 
 ### Added

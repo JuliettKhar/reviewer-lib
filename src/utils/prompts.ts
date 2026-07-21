@@ -17,6 +17,9 @@ export const REVIEW_SYSTEM_PROMPT =
     'or "ensure that" without pointing to a specific, demonstrable problem. ' +
     'Review only executable code behavior; never critique the wording, clarity, or phrasing of ' +
     'string literals, comments, or prompt text. ' +
+    'You see only the changed lines, not the whole file. Do not report missing validation, guards, ' +
+    'or error handling unless the diff itself shows the value used unguarded — assume code outside ' +
+    'the diff already handles what you cannot see. ' +
     'Calibrate severity strictly and do not inflate it: ' +
     '"critical" = security hole or data loss; ' +
     '"high" = a definite bug that breaks behavior; ' +
