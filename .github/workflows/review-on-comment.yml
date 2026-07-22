@@ -24,3 +24,5 @@ jobs:
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           pr-number: ${{ github.event.issue.number }}
+          # This repo's noise: eval cases (intentional bugs), docs, workflow/config, images.
+          exclude: 'evals/**,*.md,.github/**,tsconfig.json,*.png'

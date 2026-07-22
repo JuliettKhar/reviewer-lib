@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { annotateDiff, splitDiffByFile, splitFileDiffByHunk } from '../src/utils/diff';
+import { annotateDiff, splitDiffByFile, splitFileDiffByHunk, filterDiffByPath } from '../src/utils/diff';
 
 const DIFF = [
     'diff --git a/src/foo.ts b/src/foo.ts',
@@ -89,5 +89,36 @@ describe('splitFileDiffByHunk', () => {
 
     it('returns the input unchanged for a single-hunk diff', () => {
         expect(splitFileDiffByHunk('diff --git a/x b/x\n@@ -1 +1 @@\n+foo')).toHaveLength(1);
+    });
+});
+
+describe('filterDiffByPath', () => {
+    const diff = [
+        'diff --git a/src/app.ts b/src/app.ts',
+        '--- a/src/app.ts',
+        '+++ b/src/app.ts',
+        '@@ -1 +1 @@',
+        '+const a = 1;',
+        'diff --git a/package-lock.json b/package-lock.json',
+        '--- a/package-lock.json',
+        '+++ b/package-lock.json',
+        '@@ -1 +1 @@',
+        '+  "version": "1.0.0"',
+        'diff --git a/dist/index.js b/dist/index.js',
+        '--- a/dist/index.js',
+        '+++ b/dist/index.js',
+        '@@ -1 +1 @@',
+        '+module.exports = {};',
+    ].join('\n');
+
+    it('drops files matching exclude globs, keeps the rest', () => {
+        const out = filterDiffByPath(diff, ['package-lock.json', 'dist/**']);
+        expect(out).toContain('src/app.ts');
+        expect(out).not.toContain('package-lock.json');
+        expect(out).not.toContain('dist/index.js');
+    });
+
+    it('returns the diff unchanged when no patterns are given', () => {
+        expect(filterDiffByPath(diff, [])).toBe(diff);
     });
 });

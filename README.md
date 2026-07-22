@@ -1,6 +1,6 @@
 # Reviewer lib
-An automated code review tool that uses OpenAI to analyze and provide 
-recommendations for code improvement and commenting in PR when received message from AI.
+AI code review powered by OpenAI. Analyze a code snippet or a pull-request diff and get
+structured, actionable findings — use it as a library, a CLI, or a GitHub Action.
 
 Works with code in any language (Node is only needed to run it).
 
@@ -20,35 +20,18 @@ Works with code in any language (Node is only needed to run it).
 npm install -D reviewer-lib
 ```
 ## Usage
-Notes: by default the library uses the OpenAI **Chat Completions** API with `gpt-4o-mini`.
-You can pass any chat model (e.g. `gpt-4o`) as the `model` argument. Legacy instruct models
-(any name ending in `-instruct`, such as `gpt-3.5-turbo-instruct`) are still supported and
-are automatically routed to the older Completions API.
+Three ways to use it:
+- **`review()`** — structured findings (severity, file, line, fix). Best for PR comments and CI gates. **Recommended.**
+- **Text methods** (`submitCodeAssistanceMode`, `optimizeCode`, `securityAnalysis`, …) — plain-text feedback.
+- **CLI & GitHub Action** — no code to write (see below).
 
-```typescript
-import { Reviewer} from 'reviewer-lib';
-
-const reviewer = new Reviewer(apiKey); // OpenAI apikey
-const code = `
-function exampleFunction(x, y) {
-  let result = x + y;
-  return result;
-}
-`;
-
-reviewer.submitCodeAssistanceMode(code)
-   .then((feedback: string) => {
-      console.log('Code Review Feedback:');
-      console.log(feedback);
-   })
-   .catch((error: Error | string) => {
-      console.error('Error:', error);
-   });
-```
+By default the library uses the OpenAI **Chat Completions** API with `gpt-4o-mini`; pass any chat
+model (e.g. `gpt-4o`) as the `model` argument. Instruct models (`*-instruct`) are auto-routed to
+the legacy Completions API.
 
 ### Structured review (`review`)
 `review()` returns typed findings instead of free text (chat models only), ready for
-inline PR comments or a CI gate:
+inline PR comments or a CI gate — this is the recommended entry point:
 
 ```typescript
 import { Reviewer, formatFindings, toReviewComments, hasBlockingFindings } from 'reviewer-lib';
@@ -72,7 +55,19 @@ and the findings merged (tune the threshold with the `maxChunkChars` option, def
 
 Other `review()` options: `filter: true` runs a second-pass triage that drops low-value/defensive
 findings (use `filterModel` to judge with a stronger model like `gpt-4o` while the review stays
-cheap), and `cache: { dir }` stores results by content hash to skip re-reviewing unchanged input.
+cheap); `cache: { dir }` stores results by content hash to skip re-reviewing unchanged input; and
+`exclude: string[]` drops files matching path globs (the CLI skips lockfiles and `dist/` by default).
+
+### Free-text review
+For plain-text feedback instead of structured findings:
+
+```typescript
+import { Reviewer } from 'reviewer-lib';
+
+const reviewer = new Reviewer(apiKey);
+const feedback = await reviewer.submitCodeAssistanceMode(code);
+console.log(feedback);
+```
 
 ### CLI
 The package ships a `reviewer-lib` command, so you can review without writing any glue code
@@ -91,8 +86,9 @@ npx reviewer-lib review --pr 54 --post --fail-on high
 ```
 
 Flags: `--diff <file>`, `--pr <number>`, `--post`, `--code`, `--lang <language>`,
-`--filter`, `--cache-dir <dir>`, `--model <name>`, `--format text|json`, `--fail-on <severity>`,
-`--api-key <key>`, `--timeout <ms>`, `--max-retries <n>`. Run `npx reviewer-lib --help` for details.
+`--filter`, `--cache-dir <dir>`, `--exclude <globs>`, `--model <name>`, `--format text|json`,
+`--fail-on <severity>`, `--api-key <key>`, `--timeout <ms>`, `--max-retries <n>`.
+Run `npx reviewer-lib --help` for details.
 
 ### Use as a GitHub Action
 Add AI review to any repository in a few lines. The action reads the PR diff and posts
@@ -119,7 +115,8 @@ jobs:
 
 Inputs: `openai-api-key` (required), `github-token` (default `${{ github.token }}`),
 `pr-number` (defaults to the event's PR), `fail-on`, `model` (default `gpt-4o-mini`),
-`version` (reviewer-lib version to run, default `latest`).
+`version` (reviewer-lib version to run, default `latest`), `exclude` (extra comma-separated
+path globs to skip; lockfiles and `dist/` are skipped by default).
 
 To trigger it manually instead, use `workflow_dispatch` and pass `pr-number`.
 
@@ -161,44 +158,32 @@ git diff origin/main...HEAD | npx reviewer-lib review --fail-on high || {
 ```
 
 ## API
-`new Reviewer(apiKey, model, maxTokens)`. Creates a new Reviewer instance.
-1. Params:
-- `apiKey (String)`: Your OpenAI API key.
-- `model (String)`: The model you want to use (default 'gpt-4o-mini'). Instruct models (`*-instruct`) route to the legacy Completions API automatically.
-- `maxTokens (Number)`: The maximum number of tokens for the response (default 1500).
-- `clientOptions (Object)`: Reliability options passed to the OpenAI client — `maxRetries` (default 3) and `timeout` in ms (default 120000). The SDK retries transient failures (429/5xx) with exponential backoff automatically.
-- `code (String)`: The code to analyze. Returns Promise<String>: Suggestions for improving the code.
-- `temperature?`: Controls the creativity and variety of the generated text. Values from 0 to 1.
-- `n?`: The number of text variants the model should generate. The default value is 1.
-- `stop?`: A list of sequences where the generation should stop. For example, ["\n", "END"].
-- `top_p?`: Controls cumulative probability sampling. Values from 0 to 1. This is an alternative way to control creativity that focuses on the most likely tokens.
-- `frequency_penalty?`: A number from 0 to 1. Reduces the probability of tokens that have already been used in the text. This helps reduce repetition.
-- `presence_penalty?`: A number from 0 to 1. Increases the probability of tokens that have not yet been used. This helps introduce new topics and ideas.
-- `logprobs?`: If set, returns the logarithms of the probabilities of all tokens when generating. This is useful for analyzing probabilities and choosing the best tokens.
-- `echo?`: If set to true, returns the request along with the response. This can be useful for debugging.
-- `best_of?`: Generate multiple variants and choose the best one. This is related to n, but allows you to get the best variant from a larger number of generated texts.
-- `logit_bias?`: A map of tokens and values to control the probability of certain tokens. This allows you to influence the generation by encouraging or disallowing the use of certain words.
-2. Methods:
-- `submitCodeAssistanceMode(code: string)`: Function, analyzes and provides recommendations for improving the code.
-```typescript
-reviewer.submitCodeAssistanceMode(code).then(suggestions => {
-  console.log('Review Suggestions:', suggestions);
-});
-```
-Other Functions
-- `review(input: string, options?: { asDiff?: boolean })`: Structured review returning `Finding[]` via OpenAI Structured Outputs (chat models only). See [Structured review](#structured-review-review) above.
-- `submitCode(code: string)`: Function, analyzes and provides recommendations for improving the code. Uses the Chat Completions API by default; if the configured model is an instruct model (`*-instruct`), it routes to the legacy Completions API instead.
-- `getCurrentModels`: Function, gets list of available AI models.
-- `historicalAnalysis(repoPath: string)`: A feature that analyzes the history of code changes and makes recommendations for improvements based on past changes.
-- `codeStyleRecommendations(code: string)`: Add a feature that provides recommendations for improving code style by following established style guides.
-- `securityAnalysis(code: string)`: A function that checks code for potential vulnerabilities and suggests solutions.
-- `generateTests(code: string)`: Function for automatic test generation based on provided code.
-- `optimizeCode(code: string)`: A function for suggesting optimizations in code in terms of performance and readability.
-- `generateDocumentation(code: string)`: A function that automatically generates comments or documentation for code.
+`new Reviewer(apiKey, model?, maxTokens?, modelOptions?, clientOptions?)` — creates a Reviewer instance.
+
+**Constructor params**
+- `apiKey` (string): your OpenAI API key.
+- `model` (string): model to use (default `gpt-4o-mini`). Instruct models (`*-instruct`) route to the legacy Completions API automatically.
+- `maxTokens` (number): max tokens for the response (default 1500).
+- `modelOptions` (object): sampling options sent to the model — `temperature`, `top_p`, `frequency_penalty`, `presence_penalty`, `n`, `stop`.
+- `clientOptions` (object): reliability — `maxRetries` (default 3) and `timeout` in ms (default 120000). The SDK retries transient failures (429/5xx) with exponential backoff automatically.
+
+**Methods**
+- `review(input, options?)`: structured review → `Finding[]` (chat models only). Options: `asDiff`, `language`, `maxChunkChars`, `filter`, `filterModel`, `cache`. See [Structured review](#structured-review-review) above.
+- `submitCodeAssistanceMode(code)` / `submitCode(code)`: plain-text review (`submitCode` uses the legacy Completions API for `*-instruct` models).
+- `optimizeCode(code)`, `securityAnalysis(code)`, `generateTests(code)`, `generateDocumentation(code)`, `codeStyleRecommendations(code)`, `historicalAnalysis(repoPath)`: plain-text helpers.
+- `getCurrentModels()`: list available models.
+
+**Helpers** (named exports): `formatFindings(findings)`, `toReviewComments(findings)`, `hasBlockingFindings(findings, severity)`.
 
 ### Feedback, integrated on CI/CD (example)
 ![photo](./feedback-photo.png)
-References
+
+## References
 - [Wiki](https://github.com/JuliettKhar/reviewer-lib/wiki)
 - [OpenAI prices](https://openai.com/api/pricing/)
 - [OpenAI model's deprecations](https://platform.openai.com/docs/deprecations)
+
+## Compatibility
+Versions below **3.0.0** (the 1.x and 2.x lines) are **deprecated** on npm — please use 3.x.
+The 3.x line requires Node.js 20+ and defaults to the Chat Completions API; see the
+[CHANGELOG](./CHANGELOG.md) for breaking changes and migration notes.

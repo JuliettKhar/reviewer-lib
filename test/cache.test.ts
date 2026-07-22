@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { hashKey, readCache, writeCache } from '../src/utils/cache';
@@ -15,5 +15,6 @@ describe('cache', () => {
         expect(readCache(dir, 'missing')).toBeNull();
         writeCache(dir, 'k', { findings: [1, 2] });
         expect(readCache(dir, 'k')).toEqual({ findings: [1, 2] });
+        rmSync(dir, { recursive: true, force: true });
     });
 });

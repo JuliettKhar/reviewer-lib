@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   review itself stays on a cheap model.
 - **Hunk-level chunking** — a single file whose diff exceeds `maxChunkChars` is now split by
   hunk (not just by file), so one very large file no longer goes in a single request.
+- **Path exclusions** — `review()` accepts `exclude: string[]` (path globs) to drop whole files
+  from a diff before reviewing. The CLI skips lockfiles and `dist/` by default and takes extra
+  patterns via `--exclude`, keeping generated/noise files out of the review.
 
 ## [3.5.0] - 2026-07-21
 
