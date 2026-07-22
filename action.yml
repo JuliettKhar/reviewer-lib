@@ -29,6 +29,10 @@ inputs:
     description: 'reviewer-lib version to run (npm dist-tag or version). Must be >= 3.2.0 (the CLI).'
     required: false
     default: 'latest'
+  exclude:
+    description: 'Extra comma-separated path globs to skip (lockfiles + dist/ are skipped by default).'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -53,4 +57,5 @@ runs:
         fi
         ARGS=(review --pr "$PR" --post --model "${{ inputs.model }}")
         if [ -n "${{ inputs.fail-on }}" ]; then ARGS+=(--fail-on "${{ inputs.fail-on }}"); fi
+        if [ -n "${{ inputs.exclude }}" ]; then ARGS+=(--exclude "${{ inputs.exclude }}"); fi
         npx --yes "reviewer-lib@${{ inputs.version }}" "${ARGS[@]}"

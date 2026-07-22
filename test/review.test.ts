@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -137,6 +137,19 @@ describe('review() structured output', () => {
 
         expect(mocks.chatCreate).toHaveBeenCalledTimes(1); // second call was a cache hit
         expect(second).toEqual(first);
+        rmSync(dir, { recursive: true, force: true });
+    });
+
+    it('excludes matching files from the diff — an all-excluded diff makes no API call', async () => {
+        const diff = [
+            'diff --git a/package-lock.json b/package-lock.json',
+            '--- a/package-lock.json', '+++ b/package-lock.json', '@@ -1 +1 @@', '+  "version": "2"',
+        ].join('\n');
+
+        const findings = await new Reviewer('sk-test').review(diff, { asDiff: true, exclude: ['package-lock.json'] });
+
+        expect(findings).toEqual([]);
+        expect(mocks.chatCreate).not.toHaveBeenCalled();
     });
 
     it('filter drops findings the triage pass does not keep', async () => {

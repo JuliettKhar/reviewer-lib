@@ -23,6 +23,7 @@ Options:
   --filter           Second-pass triage: drop low-value/defensive findings
   --filter-model <m> Model for the triage pass (default: same as --model; use a stronger one)
   --cache-dir <dir>  Cache results by content hash in <dir> (skip re-reviewing unchanged input)
+  --exclude <globs>  Extra comma-separated path globs to skip (lockfiles + dist/ are skipped by default)
   --model <name>     Model to use (default: gpt-4o-mini)
   --format <fmt>     Output format: text (default) | json
   --fail-on <sev>    Exit 1 if any finding is >= severity (critical|high|medium|low)
@@ -118,6 +119,12 @@ async function main() {
     if (args.filter) reviewOptions.filter = true;
     if (args['filter-model']) reviewOptions.filterModel = args['filter-model'];
     if (args['cache-dir']) reviewOptions.cache = { dir: args['cache-dir'] };
+    if (!args.code) {
+        // Keep generated/noise files out of the review; --exclude adds more patterns.
+        const defaults = ['package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', '*-lock.json', 'dist/**'];
+        const extra = args.exclude ? args.exclude.split(',').map((s) => s.trim()).filter(Boolean) : [];
+        reviewOptions.exclude = [...defaults, ...extra];
+    }
     const findings = await reviewer.review(input, reviewOptions);
 
     // Output.

@@ -16,7 +16,7 @@ import {
 } from "./utils/prompts";
 import { defaultOptions } from './utils/default-options';
 import { Finding, REVIEW_SCHEMA, FILTER_SCHEMA } from './utils/review';
-import { annotateDiff, splitDiffByFile, splitFileDiffByHunk } from './utils/diff';
+import { annotateDiff, splitDiffByFile, splitFileDiffByHunk, filterDiffByPath } from './utils/diff';
 import { hashKey, readCache, writeCache } from './utils/cache';
 
 export interface IModel {
@@ -133,16 +133,23 @@ class Reviewer {
             cache?: { dir: string };
             filter?: boolean;
             filterModel?: string;
+            exclude?: string[];
         } = {},
     ): Promise<Finding[]> {
         if (this.isInstruct()) {
             throw new Error('review() requires a chat model; instruct models do not support structured output');
         }
 
+        // Drop excluded files (lockfiles, build output, …) from a diff before reviewing.
+        const reviewInput = options.asDiff && options.exclude?.length
+            ? filterDiffByPath(input, options.exclude)
+            : input;
+        if (options.asDiff && !reviewInput.trim()) return [];
+
         // Result cache (opt-in): identical input + model + options → return the stored findings.
         const cacheDir = options.cache?.dir;
         const cacheKey = cacheDir
-            ? hashKey(this.model, input, JSON.stringify({
+            ? hashKey(this.model, reviewInput, JSON.stringify({
                 asDiff: options.asDiff,
                 language: options.language,
                 maxChunkChars: options.maxChunkChars,
@@ -155,7 +162,7 @@ class Reviewer {
             if (hit) return hit;
         }
 
-        const findings = await this.computeReview(input, options);
+        const findings = await this.computeReview(reviewInput, options);
         const result = options.filter ? await this.filterFindings(findings, options.filterModel) : findings;
 
         if (cacheDir && cacheKey) writeCache(cacheDir, cacheKey, result);
