@@ -19,6 +19,30 @@ export function splitDiffByFile(diff: string): string[] {
     return chunks;
 }
 
+// Splits a single file's diff into one diff per hunk, repeating the file header on each so
+// every piece stays a valid, annotatable single-file diff. Used to break up one huge file
+// that alone exceeds the chunk budget. Returns the input unchanged if it has 0 or 1 hunks.
+export function splitFileDiffByHunk(fileDiff: string): string[] {
+    const header: string[] = [];
+    const hunks: string[][] = [];
+    let current: string[] | null = null;
+
+    for (const line of fileDiff.split('\n')) {
+        if (line.startsWith('@@')) {
+            if (current) hunks.push(current);
+            current = [line];
+        } else if (current) {
+            current.push(line);
+        } else {
+            header.push(line);
+        }
+    }
+    if (current) hunks.push(current);
+
+    if (hunks.length <= 1) return [fileDiff];
+    return hunks.map((hunk) => [...header, ...hunk].join('\n'));
+}
+
 // Annotates a unified diff so every ADDED line is tagged with its real line number in
 // the new file: `[path:line] +<content>`. review() feeds this to the model and instructs
 // it to take `line` only from these tags — which makes findings anchor to real lines

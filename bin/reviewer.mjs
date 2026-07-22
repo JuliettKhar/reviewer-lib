@@ -20,6 +20,9 @@ Input (pick one; defaults to stdin):
 Options:
   --code             Treat the input as raw code instead of a diff
   --lang <language>  Hint the source language (e.g. typescript, python)
+  --filter           Second-pass triage: drop low-value/defensive findings
+  --filter-model <m> Model for the triage pass (default: same as --model; use a stronger one)
+  --cache-dir <dir>  Cache results by content hash in <dir> (skip re-reviewing unchanged input)
   --model <name>     Model to use (default: gpt-4o-mini)
   --format <fmt>     Output format: text (default) | json
   --fail-on <sev>    Exit 1 if any finding is >= severity (critical|high|medium|low)
@@ -111,7 +114,11 @@ async function main() {
     if (args.timeout) clientOptions.timeout = Number(args.timeout);
     if (args['max-retries']) clientOptions.maxRetries = Number(args['max-retries']);
     const reviewer = new Reviewer(apiKey, args.model, undefined, undefined, clientOptions);
-    const findings = await reviewer.review(input, { asDiff: !args.code, language: args.lang });
+    const reviewOptions = { asDiff: !args.code, language: args.lang };
+    if (args.filter) reviewOptions.filter = true;
+    if (args['filter-model']) reviewOptions.filterModel = args['filter-model'];
+    if (args['cache-dir']) reviewOptions.cache = { dir: args['cache-dir'] };
+    const findings = await reviewer.review(input, reviewOptions);
 
     // Output.
     if (args.format === 'json') console.log(JSON.stringify(findings, null, 2));

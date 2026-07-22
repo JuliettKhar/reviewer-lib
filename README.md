@@ -67,8 +67,12 @@ if (hasBlockingFindings(findings, 'high')) process.exit(1); // fail CI on high+ 
 Each `Finding` has: `severity` (`critical` | `high` | `medium` | `low`), `category`,
 `file`, `line`, `message`, and `suggestion`.
 
-Large diffs are reviewed file-by-file automatically and the findings merged (tune the
-threshold with the `maxChunkChars` option, default 20000).
+Large diffs are reviewed file-by-file (and by hunk for a single oversized file) automatically
+and the findings merged (tune the threshold with the `maxChunkChars` option, default 20000).
+
+Other `review()` options: `filter: true` runs a second-pass triage that drops low-value/defensive
+findings (use `filterModel` to judge with a stronger model like `gpt-4o` while the review stays
+cheap), and `cache: { dir }` stores results by content hash to skip re-reviewing unchanged input.
 
 ### CLI
 The package ships a `reviewer-lib` command, so you can review without writing any glue code
@@ -87,8 +91,8 @@ npx reviewer-lib review --pr 54 --post --fail-on high
 ```
 
 Flags: `--diff <file>`, `--pr <number>`, `--post`, `--code`, `--lang <language>`,
-`--model <name>`, `--format text|json`, `--fail-on <severity>`, `--api-key <key>`,
-`--timeout <ms>`, `--max-retries <n>`. Run `npx reviewer-lib --help` for details.
+`--filter`, `--cache-dir <dir>`, `--model <name>`, `--format text|json`, `--fail-on <severity>`,
+`--api-key <key>`, `--timeout <ms>`, `--max-retries <n>`. Run `npx reviewer-lib --help` for details.
 
 ### Use as a GitHub Action
 Add AI review to any repository in a few lines. The action reads the PR diff and posts

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { annotateDiff, splitDiffByFile } from '../src/utils/diff';
+import { annotateDiff, splitDiffByFile, splitFileDiffByHunk } from '../src/utils/diff';
 
 const DIFF = [
     'diff --git a/src/foo.ts b/src/foo.ts',
@@ -64,5 +64,30 @@ describe('splitDiffByFile', () => {
 
     it('returns [] when there are no file headers', () => {
         expect(splitDiffByFile('not a diff')).toEqual([]);
+    });
+});
+
+describe('splitFileDiffByHunk', () => {
+    it('splits a multi-hunk file diff, repeating the header on each', () => {
+        const fileDiff = [
+            'diff --git a/a.ts b/a.ts',
+            '--- a/a.ts',
+            '+++ b/a.ts',
+            '@@ -1 +1 @@',
+            '+const a = 1;',
+            '@@ -10 +10 @@',
+            '+const b = 2;',
+        ].join('\n');
+        const parts = splitFileDiffByHunk(fileDiff);
+        expect(parts).toHaveLength(2);
+        expect(parts[0]).toContain('+++ b/a.ts');
+        expect(parts[0]).toContain('+const a = 1;');
+        expect(parts[0]).not.toContain('const b = 2;');
+        expect(parts[1]).toContain('+++ b/a.ts');
+        expect(parts[1]).toContain('+const b = 2;');
+    });
+
+    it('returns the input unchanged for a single-hunk diff', () => {
+        expect(splitFileDiffByHunk('diff --git a/x b/x\n@@ -1 +1 @@\n+foo')).toHaveLength(1);
     });
 });

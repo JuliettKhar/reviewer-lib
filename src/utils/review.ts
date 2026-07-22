@@ -40,6 +40,20 @@ export const REVIEW_SCHEMA = {
     },
 };
 
+// Structured-output schema for the second-pass filter: the indices of findings to keep.
+export const FILTER_SCHEMA = {
+    name: 'kept_findings',
+    strict: true,
+    schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+            keep: { type: 'array', items: { type: 'integer' } },
+        },
+        required: ['keep'],
+    },
+};
+
 const SEVERITY_ORDER: Record<Severity, number> = { low: 0, medium: 1, high: 2, critical: 3 };
 const SEVERITY_EMOJI: Record<Severity, string> = { critical: '🔴', high: '🟠', medium: '🟡', low: '🔵' };
 

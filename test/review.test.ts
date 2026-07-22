@@ -1,4 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 const mocks = vi.hoisted(() => ({
     chatCreate: vi.fn(),
@@ -122,6 +125,41 @@ describe('review() structured output', () => {
         expect(mocks.chatCreate).toHaveBeenCalledTimes(2);
         expect(findings).toHaveLength(2);
         expect(findings.map((f) => f.file).sort()).toEqual(['a.ts', 'b.ts']);
+    });
+
+    it('caches results and skips the API on a second identical review', async () => {
+        const dir = mkdtempSync(join(tmpdir(), 'rl-review-cache-'));
+        mocks.chatCreate.mockResolvedValue(chatJson({ findings: [sampleFinding()] }));
+        const reviewer = new Reviewer('sk-test');
+
+        const first = await reviewer.review('const a = 1;', { cache: { dir } });
+        const second = await reviewer.review('const a = 1;', { cache: { dir } });
+
+        expect(mocks.chatCreate).toHaveBeenCalledTimes(1); // second call was a cache hit
+        expect(second).toEqual(first);
+    });
+
+    it('filter drops findings the triage pass does not keep', async () => {
+        mocks.chatCreate
+            .mockResolvedValueOnce(chatJson({ findings: [sampleFinding({ message: 'real bug' }), sampleFinding({ message: 'nit' })] }))
+            .mockResolvedValueOnce(chatJson({ keep: [0] })); // triage keeps only index 0
+
+        const findings = await new Reviewer('sk-test').review('code', { filter: true });
+
+        expect(mocks.chatCreate).toHaveBeenCalledTimes(2); // review + filter pass
+        expect(findings).toHaveLength(1);
+        expect(findings[0].message).toBe('real bug');
+    });
+
+    it('runs the triage pass on filterModel while review stays on the main model', async () => {
+        mocks.chatCreate
+            .mockResolvedValueOnce(chatJson({ findings: [sampleFinding()] }))
+            .mockResolvedValueOnce(chatJson({ keep: [0] }));
+
+        await new Reviewer('sk-test').review('code', { filter: true, filterModel: 'gpt-4o' });
+
+        expect(mocks.chatCreate.mock.calls[0][0].model).toBe('gpt-4o-mini'); // review
+        expect(mocks.chatCreate.mock.calls[1][0].model).toBe('gpt-4o');      // triage
     });
 });
 

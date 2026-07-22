@@ -4,6 +4,19 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.0] - 2026-07-22
+
+### Added
+- **Result cache** — pass `{ cache: { dir } }` to `review()` (CLI: `--cache-dir <dir>`) to store
+  findings keyed by a hash of the input + model + options and skip re-reviewing unchanged input
+  (e.g. CI re-runs on the same commit). Best-effort — cache errors never fail a review.
+- **Second-pass filter** — `{ filter: true }` (CLI: `--filter`) runs a triage pass that keeps
+  concrete, actionable defects and drops hypothetical/defensive nits (one extra request). Set
+  `filterModel` (CLI: `--filter-model`) to judge with a stronger model (e.g. `gpt-4o`) while the
+  review itself stays on a cheap model.
+- **Hunk-level chunking** — a single file whose diff exceeds `maxChunkChars` is now split by
+  hunk (not just by file), so one very large file no longer goes in a single request.
+
 ## [3.5.0] - 2026-07-21
 
 ### Added
@@ -125,6 +138,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI now runs on Node 20 and executes the test suite on every pull request.
 - Dependabot groups minor/patch updates into a single PR and now also covers GitHub Actions.
 
+[3.6.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.6.0
 [3.5.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.5.0
 [3.4.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.4.0
 [3.3.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.3.0

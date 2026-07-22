@@ -11,11 +11,13 @@ import {
     generateTestsPrompt,
     SYSTEM_PROMPT,
     REVIEW_SYSTEM_PROMPT,
+    FILTER_SYSTEM_PROMPT,
     buildReviewPrompt
 } from "./utils/prompts";
 import { defaultOptions } from './utils/default-options';
-import { Finding, REVIEW_SCHEMA } from './utils/review';
-import { annotateDiff, splitDiffByFile } from './utils/diff';
+import { Finding, REVIEW_SCHEMA, FILTER_SCHEMA } from './utils/review';
+import { annotateDiff, splitDiffByFile, splitFileDiffByHunk } from './utils/diff';
+import { hashKey, readCache, writeCache } from './utils/cache';
 
 export interface IModel {
     id: string;
@@ -124,21 +126,86 @@ class Reviewer {
     // keeps each request focused and avoids truncating the model's JSON output.
     async review(
         input: string,
-        options: { asDiff?: boolean; language?: string; maxChunkChars?: number } = {},
+        options: {
+            asDiff?: boolean;
+            language?: string;
+            maxChunkChars?: number;
+            cache?: { dir: string };
+            filter?: boolean;
+            filterModel?: string;
+        } = {},
     ): Promise<Finding[]> {
         if (this.isInstruct()) {
             throw new Error('review() requires a chat model; instruct models do not support structured output');
         }
 
+        // Result cache (opt-in): identical input + model + options → return the stored findings.
+        const cacheDir = options.cache?.dir;
+        const cacheKey = cacheDir
+            ? hashKey(this.model, input, JSON.stringify({
+                asDiff: options.asDiff,
+                language: options.language,
+                maxChunkChars: options.maxChunkChars,
+                filter: options.filter,
+                filterModel: options.filterModel,
+            }))
+            : null;
+        if (cacheDir && cacheKey) {
+            const hit = readCache<Finding[]>(cacheDir, cacheKey);
+            if (hit) return hit;
+        }
+
+        const findings = await this.computeReview(input, options);
+        const result = options.filter ? await this.filterFindings(findings, options.filterModel) : findings;
+
+        if (cacheDir && cacheKey) writeCache(cacheDir, cacheKey, result);
+        return result;
+    }
+
+    // Runs the review, splitting large diffs by file (then by hunk for a single oversized file)
+    // and merging the findings. Small inputs go through as a single request.
+    private async computeReview(
+        input: string,
+        options: { asDiff?: boolean; language?: string; maxChunkChars?: number },
+    ): Promise<Finding[]> {
         const maxChunkChars = options.maxChunkChars ?? 20_000;
         if (options.asDiff && input.length > maxChunkChars) {
-            const chunks = splitDiffByFile(input);
+            const chunks = splitDiffByFile(input).flatMap((fileDiff) =>
+                fileDiff.length > maxChunkChars ? splitFileDiffByHunk(fileDiff) : [fileDiff],
+            );
             if (chunks.length > 1) {
                 const perChunk = await this.mapLimit(chunks, 5, (chunk) => this.reviewOnce(chunk, options));
                 return perChunk.flat();
             }
         }
         return this.reviewOnce(input, options);
+    }
+
+    // Second pass: asks the model which findings are real, actionable defects and drops the rest
+    // (hypothetical/defensive nits). Best-effort — on error or empty input, findings pass through.
+    private async filterFindings(findings: Finding[], filterModel?: string): Promise<Finding[]> {
+        if (findings.length === 0) return findings;
+        const model = filterModel ?? this.model;
+        try {
+            const list = findings
+                .map((f, i) => `${i}. [${f.severity}/${f.category}] ${f.message}`)
+                .join('\n');
+            const isReasoning = /^o\d/.test(model);
+            const response = await this.client.chat.completions.create({
+                model,
+                messages: [
+                    { role: 'system' as const, content: FILTER_SYSTEM_PROMPT },
+                    { role: 'user' as const, content: `Findings:\n${list}\n\nReturn the indices to KEEP.` },
+                ],
+                response_format: { type: 'json_schema', json_schema: FILTER_SCHEMA },
+                ...(isReasoning ? { max_completion_tokens: 300 } : { max_tokens: 300 }),
+            });
+            const content = response.choices[0]?.message?.content ?? '{"keep":[]}';
+            const keep = new Set<number>((JSON.parse(content).keep ?? []) as number[]);
+            return findings.filter((_, i) => keep.has(i));
+        } catch {
+            return findings;
+        }
     }
 
     // One structured-review request over a single payload (whole diff or one file's diff).
