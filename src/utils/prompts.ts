@@ -28,6 +28,13 @@ export const REVIEW_SYSTEM_PROMPT =
     'For each finding give a severity, a short category, a clear message, and a concrete fix. ' +
     'If there are no substantive issues, return an empty findings list.';
 
+// Second-pass triage persona: prunes low-value findings while keeping real defects.
+export const FILTER_SYSTEM_PROMPT =
+    'You are triaging code-review findings. Keep only concrete, actionable defects a reviewer ' +
+    'would act on. Drop hypothetical or defensive nits (e.g. "value might not be the expected type", ' +
+    '"could fail if input is malformed") when nothing shows the problem actually occurs, plus ' +
+    'speculation and low-value style. Return the 0-based indices of the findings to KEEP.';
+
 // Builds the user message for review(). In diff mode the input is expected to be
 // annotated by annotateDiff(): each added line is prefixed with a `[path:line]` tag, and
 // the model must copy `file`/`line` verbatim from that tag so findings anchor to real lines.

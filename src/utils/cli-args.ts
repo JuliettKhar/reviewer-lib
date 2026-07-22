@@ -8,7 +8,7 @@ export interface ParsedArgs {
 // - `--post`, `--code`, `-h`, `--help` are boolean flags
 // - anything else is a positional, collected in `_`
 export function parseArgs(argv: string[]): ParsedArgs {
-    const booleanFlags = new Set(['--post', '--code', '-h', '--help']);
+    const booleanFlags = new Set(['--post', '--code', '--filter', '-h', '--help']);
     const args: ParsedArgs = { _: [] };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
