@@ -175,8 +175,12 @@ git diff origin/main...HEAD | npx reviewer-lib review --fail-on high || {
 
 **Helpers** (named exports): `formatFindings(findings)`, `toReviewComments(findings)`, `hasBlockingFindings(findings, severity)`.
 
-### Feedback, integrated on CI/CD (example)
-![photo](./feedback-photo.png)
+### Example — a review posted on a pull request
+The review posts a summary of findings plus inline comments on the changed lines:
+
+![Findings summary](https://raw.githubusercontent.com/JuliettKhar/reviewer-lib/master/feedback-findings.png)
+
+![Inline review comments on the diff](https://raw.githubusercontent.com/JuliettKhar/reviewer-lib/master/review-photo.png)
 
 ## References
 - [Wiki](https://github.com/JuliettKhar/reviewer-lib/wiki)
