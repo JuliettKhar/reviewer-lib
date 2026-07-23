@@ -26,3 +26,5 @@ pnpm-debug.log*
 
 # Test coverage output
 coverage
+
+BACKLOG.md
