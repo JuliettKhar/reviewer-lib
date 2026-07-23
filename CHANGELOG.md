@@ -4,6 +4,18 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.0] - 2026-07-23
+
+### Added
+- **Path exclusions** — `review()` accepts `exclude: string[]` (path globs) to drop whole files
+  from a diff before reviewing. The CLI skips lockfiles and `dist/` by default and takes extra
+  patterns via `--exclude`; the GitHub Action exposes an `exclude` input. Keeps generated/noise
+  files (lockfiles, docs, build output) out of the review.
+
+### Docs
+- Reworked the README (accurate constructor params, options, examples) and refreshed the
+  example screenshots.
+
 ## [3.6.0] - 2026-07-22
 
 ### Added
@@ -16,9 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   review itself stays on a cheap model.
 - **Hunk-level chunking** — a single file whose diff exceeds `maxChunkChars` is now split by
   hunk (not just by file), so one very large file no longer goes in a single request.
-- **Path exclusions** — `review()` accepts `exclude: string[]` (path globs) to drop whole files
-  from a diff before reviewing. The CLI skips lockfiles and `dist/` by default and takes extra
-  patterns via `--exclude`, keeping generated/noise files out of the review.
 
 ## [3.5.0] - 2026-07-21
 
@@ -141,6 +150,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI now runs on Node 20 and executes the test suite on every pull request.
 - Dependabot groups minor/patch updates into a single PR and now also covers GitHub Actions.
 
+[3.7.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.7.0
 [3.6.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.6.0
 [3.5.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.5.0
 [3.4.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.4.0
