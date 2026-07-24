@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.2] - 2026-07-24
+
+### Fixed
+- **No more "Unexpected end of JSON input" crashes** — `review()` returns `[]` for an empty or
+  truncated model response instead of failing the whole run.
+- **Reasoning models get enough token budget** — o-series/gpt-5.x reviews now use a higher
+  `max_completion_tokens` floor (8000) so hidden reasoning tokens don't starve the JSON answer
+  (which was coming back empty). The second-pass filter's reasoning budget was raised too.
+
 ## [3.7.1] - 2026-07-24
 
 ### Fixed
@@ -169,6 +178,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI now runs on Node 20 and executes the test suite on every pull request.
 - Dependabot groups minor/patch updates into a single PR and now also covers GitHub Actions.
 
+[3.7.2]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.7.2
 [3.7.1]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.7.1
 [3.7.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.7.0
 [3.6.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.6.0
