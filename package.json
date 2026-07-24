@@ -1,6 +1,6 @@
 {
   "name": "reviewer-lib",
-  "version": "3.7.0",
+  "version": "3.7.2",
   "description": "A library for code review using OpenAI API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -34,7 +34,7 @@
     "test:coverage": "vitest run --coverage",
     "smoke": "node scripts/smoke-test.mjs",
     "review:local": "printf 'function add(a, b) { return a - b; }' | node --env-file=.env review-helper.mjs",
-    "review": "npm run build && git diff HEAD | node --env-file=.env bin/reviewer.mjs review",
+    "review": "npm run build && git diff -U30 HEAD | node --env-file=.env bin/reviewer.mjs review",
     "eval": "npm run build && node --env-file=.env evals/run.mjs",
     "prepublishOnly": "npm run build && npm run test"
   },

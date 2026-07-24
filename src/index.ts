@@ -75,6 +75,12 @@ class Reviewer {
         return this.model.endsWith('-instruct');
     }
 
+    // Reasoning models (o-series and the gpt-5.x family) require `max_completion_tokens`
+    // and reject sampling params like `temperature`/`top_p`.
+    private isReasoning(model = this.model): boolean {
+        return /^o\d/.test(model) || /^gpt-5/.test(model);
+    }
+
     // Single entry point for every prompt. Routes to Chat Completions by default and
     // falls back to the legacy Completions API for instruct models, so callers that
     // still pass an instruct model keep working. Returns the model's text output.
@@ -92,7 +98,7 @@ class Reviewer {
             }
 
             // Reasoning models (o1/o3/…) use `max_completion_tokens` and reject `temperature`/`top_p`.
-            const isReasoning = /^o\d/.test(this.model);
+            const isReasoning = this.isReasoning();
             const { temperature, top_p, ...reasoningSafeOptions } = this.modelOptions;
             const response = await this.client.chat.completions.create({
                 model: this.model,
@@ -197,7 +203,7 @@ class Reviewer {
             const list = findings
                 .map((f, i) => `${i}. [${f.severity}/${f.category}] ${f.message}`)
                 .join('\n');
-            const isReasoning = /^o\d/.test(model);
+            const isReasoning = this.isReasoning(model);
             const response = await this.client.chat.completions.create({
                 model,
                 messages: [
@@ -220,7 +226,7 @@ class Reviewer {
         try {
             // Tag added lines with real new-file line numbers so the model anchors findings correctly.
             const payload = options.asDiff ? annotateDiff(input) : input;
-            const isReasoning = /^o\d/.test(this.model);
+            const isReasoning = this.isReasoning();
             const response = await this.client.chat.completions.create({
                 model: this.model,
                 messages: [
