@@ -98,16 +98,19 @@ describe('Instruct routing (backward compatibility)', () => {
     });
 });
 
-describe('reasoning models (o-series)', () => {
-    it('submitCode sends max_completion_tokens and omits temperature/max_tokens', async () => {
-        mocks.chatCreate.mockResolvedValue(okChat('ok'));
-        await new Reviewer('sk-test', 'o3-mini').submitCode('code');
+describe('reasoning models (o-series + gpt-5.x)', () => {
+    it.each(['o3-mini', 'gpt-5.1', 'gpt-5.2-codex'])(
+        '%s sends max_completion_tokens and omits temperature/max_tokens',
+        async (model) => {
+            mocks.chatCreate.mockResolvedValue(okChat('ok'));
+            await new Reviewer('sk-test', model).submitCode('code');
 
-        const arg = mocks.chatCreate.mock.calls[0][0];
-        expect(arg.max_completion_tokens).toBe(1500);
-        expect(arg.max_tokens).toBeUndefined();
-        expect(arg.temperature).toBeUndefined();
-    });
+            const arg = mocks.chatCreate.mock.calls[0][0];
+            expect(arg.max_completion_tokens).toBe(1500);
+            expect(arg.max_tokens).toBeUndefined();
+            expect(arg.temperature).toBeUndefined();
+        },
+    );
 });
 
 describe('generateDocumentation wrapping logic', () => {

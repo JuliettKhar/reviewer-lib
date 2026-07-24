@@ -41,9 +41,11 @@ export const FILTER_SYSTEM_PROMPT =
 export const buildReviewPrompt = (input: string, asDiff = false, language?: string) => {
     const lang = language ? `The code is written in ${language}. ` : '';
     return asDiff
-        ? `${lang}Review the following unified diff. Only comment on lines tagged with a \`[path:line]\` ` +
-          'marker (these are the added lines). For each finding, set "file" and "line" to exactly ' +
-          'the values from that line\'s `[path:line]` tag — never guess or compute line numbers.' +
+        ? `${lang}Review the following unified diff. Lines tagged with a \`[path:line]\` marker are ` +
+          'the CHANGES — review only these. Untagged lines are surrounding CONTEXT: use them to ' +
+          'understand the change, but do not raise findings on them and assume that code is correct. ' +
+          'For each finding, set "file" and "line" to exactly the values from that line\'s ' +
+          '`[path:line]` tag — never guess or compute line numbers.' +
           `\n\n${input}`
         : `${lang}Review the following code and report substantive issues. Set "file" and "line" to ` +
           `null since no file context is available.\n\n${input}`;

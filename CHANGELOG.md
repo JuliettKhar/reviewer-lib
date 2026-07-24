@@ -4,6 +4,27 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.2] - 2026-07-24
+
+### Fixed
+- **gpt-5.x compatibility** — reasoning-model detection now also covers the `gpt-5.x` family
+  (previously only `o*`), so those models get `max_completion_tokens` and no `temperature`
+  instead of failing with "Unsupported parameter: 'max_tokens'".
+
+### Docs
+- Recommend a reasoning model (e.g. `o4-mini`) for the fewest false positives — in the eval it
+  caught every planted bug with zero defensive noise.
+
+## [3.7.1] - 2026-07-24
+
+### Changed
+- Review prompt now explicitly separates **changes** (the `[path:line]`-tagged lines, reviewed)
+  from **context** (untagged surrounding lines — background only, assumed correct). Improves
+  severity accuracy and cuts "missing guard/validation" false positives, especially when the
+  diff carries more context.
+- The local `review` script and README examples use `git diff -U30` so the model sees more
+  surrounding code (it still comments only on changed lines).
+
 ## [3.7.0] - 2026-07-23
 
 ### Added
@@ -150,6 +171,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI now runs on Node 20 and executes the test suite on every pull request.
 - Dependabot groups minor/patch updates into a single PR and now also covers GitHub Actions.
 
+[3.7.2]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.7.2
+[3.7.1]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.7.1
 [3.7.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.7.0
 [3.6.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.6.0
 [3.5.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.5.0

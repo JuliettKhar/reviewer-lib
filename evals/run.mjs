@@ -18,7 +18,8 @@ if (!apiKey) {
 const SEVERITY = { low: 0, medium: 1, high: 2, critical: 3 };
 const FILTER = Boolean(process.env.EVAL_FILTER); // EVAL_FILTER=1 → run the second-pass triage
 const FILTER_MODEL = process.env.EVAL_FILTER_MODEL; // optional stronger judge, e.g. gpt-4o
-const reviewer = new Reviewer(apiKey);
+const MODEL = process.env.EVAL_MODEL; // optional review model override, e.g. gpt-5.2-codex
+const reviewer = new Reviewer(apiKey, MODEL);
 
 function satisfies(findings, mustFind) {
     const threshold = SEVERITY[mustFind.severityAtLeast ?? 'low'];
@@ -68,6 +69,7 @@ for (const testCase of cases) {
 
 console.log('\n' + rows.join('\n'));
 console.log('─'.repeat(42));
+console.log(`model:   ${MODEL || 'gpt-4o-mini (default)'}`);
 console.log(`mode:    ${FILTER ? `with second-pass filter${FILTER_MODEL ? ` (judge: ${FILTER_MODEL})` : ''}` : 'baseline'}`);
 console.log(`recall:  ${bugsCaught}/${bugsTotal} planted bugs found`);
 console.log(`noise:   ${cleanTotal - cleanPass} false positive(s) on ${cleanTotal} clean cases`);

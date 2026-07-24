@@ -50,6 +50,24 @@ export const cases = [
         expect: { findings: 0 },
     },
     {
+        // Guard is present as a CONTEXT line right above the change — with the context visible,
+        // the reviewer should not flag a "missing null check". Contrast with 'no-guard-in-diff'.
+        name: 'guard-in-context',
+        diff: [
+            'diff --git a/user.ts b/user.ts',
+            '--- a/user.ts',
+            '+++ b/user.ts',
+            '@@ -5,5 +5,6 @@',
+            ' function greeting(user: User | null): string {',
+            '   if (!user) return "Hello, guest";',
+            '   const name = user.name;',
+            '+  const upper = name.toUpperCase();',
+            '   return `Hello, ${upper}`;',
+            ' }',
+        ].join('\n'),
+        expect: { findings: 0 },
+    },
+    {
         // Tests the "don't invent missing guards for code outside the diff" rule: the added
         // line uses `items` with no guard shown, but the reviewer should assume it's handled.
         name: 'no-guard-in-diff',

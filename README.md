@@ -26,8 +26,12 @@ Three ways to use it:
 - **CLI & GitHub Action** — no code to write (see below).
 
 By default the library uses the OpenAI **Chat Completions** API with `gpt-4o-mini`; pass any chat
-model (e.g. `gpt-4o`) as the `model` argument. Instruct models (`*-instruct`) are auto-routed to
-the legacy Completions API.
+model as the `model` argument. Instruct models (`*-instruct`) are auto-routed to the legacy
+Completions API, and reasoning models (o-series, gpt-5.x) are handled automatically.
+
+> **For the fewest false positives, use a reasoning model** like `o4-mini` (`--model o4-mini`).
+> In our eval it caught every real bug with **zero** defensive/hypothetical noise, where
+> `gpt-4o-mini` adds low-severity nits. It's pricier/slower but the signal is clean.
 
 ### Structured review (`review`)
 `review()` returns typed findings instead of free text (chat models only), ready for
@@ -133,6 +137,10 @@ Review your uncommitted changes:
 git diff | npx reviewer-lib review
 ```
 
+> **Tip:** pipe `git diff -U30` (more context lines) — the reviewer still comments only on the
+> changed lines, but sees more surrounding code, which improves severity accuracy and cuts
+> "missing guard/validation" false positives.
+
 Review a whole branch before opening a PR (everything since `main`):
 ```shell
 git diff main...HEAD | npx reviewer-lib review --fail-on high
@@ -151,7 +159,7 @@ Optional — review automatically before every push with a git hook. Save as
 `.git/hooks/pre-push` and `chmod +x` it:
 ```sh
 #!/bin/sh
-git diff origin/main...HEAD | npx reviewer-lib review --fail-on high || {
+git diff -U30 origin/main...HEAD | npx reviewer-lib review --fail-on high || {
   echo "reviewer-lib found blocking issues — push aborted (use 'git push --no-verify' to override)."
   exit 1
 }

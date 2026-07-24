@@ -31,5 +31,6 @@ jobs:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           pr-number: ${{ inputs.pr_number }}
           fail-on: ${{ inputs.fail_on }}
+          model: o4-mini # reasoning model — far fewer defensive false positives (eval: noise 0/4)
           # This repo's noise: eval cases (intentional bugs), docs, workflow/config, images.
           exclude: 'evals/**,*.md,.github/**,tsconfig.json,*.png'
