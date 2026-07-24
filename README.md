@@ -29,9 +29,7 @@ By default the library uses the OpenAI **Chat Completions** API with `gpt-4o-min
 model as the `model` argument. Instruct models (`*-instruct`) are auto-routed to the legacy
 Completions API, and reasoning models (o-series, gpt-5.x) are handled automatically.
 
-> **For the fewest false positives, use a reasoning model** like `o4-mini` (`--model o4-mini`).
-> In our eval it caught every real bug with **zero** defensive/hypothetical noise, where
-> `gpt-4o-mini` adds low-severity nits. It's pricier/slower but the signal is clean.
+> **Tip:** for the fewest false positives, use a reasoning model like `o4-mini` (`--model o4-mini`).
 
 ### Structured review (`review`)
 `review()` returns typed findings instead of free text (chat models only), ready for
