@@ -211,9 +211,10 @@ class Reviewer {
                     { role: 'user' as const, content: `Findings:\n${list}\n\nReturn the indices to KEEP.` },
                 ],
                 response_format: { type: 'json_schema', json_schema: FILTER_SCHEMA },
-                ...(isReasoning ? { max_completion_tokens: 300 } : { max_tokens: 300 }),
+                // Reasoning judges need room to think before the tiny keep-list answer.
+                ...(isReasoning ? { max_completion_tokens: 4000 } : { max_tokens: 300 }),
             });
-            const content = response.choices[0]?.message?.content ?? '{"keep":[]}';
+            const content = response.choices[0]?.message?.content?.trim() || '{"keep":[]}';
             const keep = new Set<number>((JSON.parse(content).keep ?? []) as number[]);
             return findings.filter((_, i) => keep.has(i));
         } catch {
@@ -223,10 +224,14 @@ class Reviewer {
 
     // One structured-review request over a single payload (whole diff or one file's diff).
     private async reviewOnce(input: string, options: { asDiff?: boolean; language?: string }): Promise<Finding[]> {
+        let content: string;
         try {
             // Tag added lines with real new-file line numbers so the model anchors findings correctly.
             const payload = options.asDiff ? annotateDiff(input) : input;
             const isReasoning = this.isReasoning();
+            // Reasoning models spend tokens on hidden reasoning before the answer, so give the
+            // budget a floor — otherwise the JSON output can be starved and come back empty.
+            const budget = isReasoning ? Math.max(this.maxTokens, 8000) : this.maxTokens;
             const response = await this.client.chat.completions.create({
                 model: this.model,
                 messages: [
@@ -235,13 +240,20 @@ class Reviewer {
                 ],
                 response_format: { type: 'json_schema', json_schema: REVIEW_SCHEMA },
                 ...(isReasoning
-                    ? { max_completion_tokens: this.maxTokens }
-                    : { max_tokens: this.maxTokens, temperature: this.modelOptions.temperature }),
+                    ? { max_completion_tokens: budget }
+                    : { max_tokens: budget, temperature: this.modelOptions.temperature }),
             });
-            const content = response.choices[0]?.message?.content ?? '{"findings":[]}';
-            return (JSON.parse(content).findings ?? []) as Finding[];
+            content = response.choices[0]?.message?.content ?? '';
         } catch (error: any) {
             throw new Error(`OpenAI API error: ${error?.message || error}`);
+        }
+        // Empty or truncated output (e.g. the token budget was consumed by reasoning) → no findings,
+        // instead of crashing the whole review with "Unexpected end of JSON input".
+        if (!content.trim()) return [];
+        try {
+            return (JSON.parse(content).findings ?? []) as Finding[];
+        } catch {
+            return [];
         }
     }
 

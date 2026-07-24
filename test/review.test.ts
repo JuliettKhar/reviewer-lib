@@ -88,6 +88,16 @@ describe('review() structured output', () => {
         expect(await new Reviewer('sk-test').review('code')).toEqual([]);
     });
 
+    it('returns [] on empty output instead of throwing', async () => {
+        mocks.chatCreate.mockResolvedValue({ choices: [{ message: { content: '   ' } }] });
+        expect(await new Reviewer('sk-test').review('code')).toEqual([]);
+    });
+
+    it('returns [] on truncated/invalid JSON instead of throwing', async () => {
+        mocks.chatCreate.mockResolvedValue({ choices: [{ message: { content: '{"findings":[{"sev' } }] });
+        expect(await new Reviewer('sk-test').review('code')).toEqual([]);
+    });
+
     it('throws for instruct models (no structured output support)', async () => {
         await expect(
             new Reviewer('sk-test', 'gpt-3.5-turbo-instruct').review('code'),
@@ -100,12 +110,12 @@ describe('review() structured output', () => {
         await expect(new Reviewer('sk-test').review('code')).rejects.toThrow('OpenAI API error: boom');
     });
 
-    it('uses max_completion_tokens and omits temperature for reasoning models', async () => {
+    it('uses a larger max_completion_tokens budget and omits temperature for reasoning models', async () => {
         mocks.chatCreate.mockResolvedValue(chatJson({ findings: [] }));
         await new Reviewer('sk-test', 'o3-mini').review('code');
 
         const arg = mocks.chatCreate.mock.calls[0][0];
-        expect(arg.max_completion_tokens).toBe(1500);
+        expect(arg.max_completion_tokens).toBe(8000); // reasoning floor, so the JSON answer isn't starved
         expect(arg.max_tokens).toBeUndefined();
         expect(arg.temperature).toBeUndefined();
     });
