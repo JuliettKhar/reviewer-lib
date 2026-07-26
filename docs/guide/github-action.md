@@ -52,6 +52,8 @@ review on each push.
 | --- | --- | --- |
 | `openai-api-key` | _(required)_ | OpenAI API key |
 | `github-token` | `github.token` | Token used to read the PR diff and post comments |
+| `app-id` | _(empty)_ | GitHub App ID — post comments as your own App (see [below](#post-as-your-own-github-app)) |
+| `app-private-key` | _(empty)_ | GitHub App private key (PEM); pair with `app-id` |
 | `pr-number` | event's PR | Pull request number to review |
 | `model` | `o4-mini` | Model to use; pass `gpt-4o-mini` for a cheaper, noisier review |
 | `summary` | `false` | Set to `'true'` to add a "what changed" overview above the findings |
@@ -84,3 +86,34 @@ jobs:
 ```
 
 > Comment triggers only fire when the workflow is on the repository's **default branch**.
+
+## Post as your own GitHub App
+
+By default the review is posted by `github-actions[bot]`. To post it under your own identity —
+a custom bot name and avatar — supply a GitHub App. The action mints a short-lived installation
+token from the App and uses it instead of `github-token`.
+
+**Setup (once):**
+
+1. Create a GitHub App: **Settings → Developer settings → GitHub Apps → New GitHub App**.
+   - Repository permissions: **Pull requests: Read & write**, **Contents: Read-only**.
+   - No webhook needed.
+2. **Install** the App on the repository (or org).
+3. Note the **App ID**, and generate a **private key** (downloads a `.pem`).
+4. Add two repository secrets: `REVIEWER_APP_ID` and `REVIEWER_APP_PRIVATE_KEY` (paste the full PEM).
+
+**Then pass them to the action:**
+
+```yaml
+      - uses: JuliettKhar/reviewer-lib@v3
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          app-id: ${{ secrets.REVIEWER_APP_ID }}
+          app-private-key: ${{ secrets.REVIEWER_APP_PRIVATE_KEY }}
+          summary: 'true'
+          fail-on: high
+```
+
+When `app-id` + `app-private-key` are set, the action generates the App token automatically
+(via [`actions/create-github-app-token`](https://github.com/actions/create-github-app-token)) and
+posts as the App. Leave them empty to keep using `github-token` (the default `github-actions[bot]`).

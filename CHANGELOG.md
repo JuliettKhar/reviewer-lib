@@ -4,6 +4,14 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.2.0] - 2026-07-26
+
+### Added
+- **Post PR comments as your own GitHub App** — the GitHub Action accepts `app-id` +
+  `app-private-key` inputs. When both are set it mints a short-lived installation token (via
+  `actions/create-github-app-token`) and posts the review under your App's identity (custom bot
+  name + avatar) instead of `github-actions[bot]`. Leave them empty to keep using `github-token`.
+
 ## [4.1.0] - 2026-07-26
 
 ### Added
@@ -212,6 +220,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI now runs on Node 20 and executes the test suite on every pull request.
 - Dependabot groups minor/patch updates into a single PR and now also covers GitHub Actions.
 
+[4.2.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v4.2.0
 [4.1.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v4.1.0
 [4.0.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v4.0.0
 [3.7.2]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.7.2
