@@ -15,6 +15,7 @@ Works with code in any language (Node is only needed to run it).
 ![NPM Version](https://img.shields.io/npm/v/reviewer-lib)
 ![Minified Size](https://img.shields.io/bundlephobia/min/reviewer-lib)
 ![Open Issues](https://img.shields.io/github/issues/JuliettKhar/reviewer-lib)
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-reviewer--lib%20code%20review-purple?logo=github)](https://github.com/marketplace/actions/reviewer-lib-code-review)
 
 ## Installation
 > Requires Node.js 20+ (the library depends on `openai` v6).
