@@ -10,7 +10,7 @@ Works with code in any language (Node is only needed to run it).
 [//]: # (![Stars]&#40;https://img.shields.io/github/stars/JuliettKhar/reviewer-lib&#41;)
 [//]: # (![Coverage]&#40;https://img.shields.io/codecov/c/github/JuliettKhar/reviewer-lib&#41;)
 [//]: # (![Dependencies]&#40;https://img.shields.io/librariesio/release/npm/reviewer-lib&#41;)
-![Build Status](https://img.shields.io/github/actions/workflow/status/JuliettKhar/reviewer-lib/.github/workflows/check-app.yml)
+![Build Status](https://img.shields.io/github/actions/workflow/status/JuliettKhar/reviewer-lib/check-app.yml?branch=master)
 ![Downloads](https://img.shields.io/npm/dt/reviewer-lib)
 ![NPM Version](https://img.shields.io/npm/v/reviewer-lib)
 ![Minified Size](https://img.shields.io/bundlephobia/min/reviewer-lib)

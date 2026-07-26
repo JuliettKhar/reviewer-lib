@@ -16,6 +16,11 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # TypeScript 7 breaks the current build (migration deferred). Stay on 5.x:
+      # allow minor/patch, skip the major bump until we migrate deliberately.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/" # Workflow files live in .github/workflows/

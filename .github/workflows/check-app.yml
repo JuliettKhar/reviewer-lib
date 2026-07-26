@@ -1,6 +1,11 @@
 name: check job
 
 on:
+  # Run on merges to master so the build badge reflects master's health
+  # (independent of any failing Dependabot PR on its own branch).
+  push:
+    branches:
+      - master
   pull_request:
     branches:
       - master
