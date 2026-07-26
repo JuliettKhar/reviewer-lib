@@ -76,21 +76,6 @@ function githubApi(repository, token) {
         });
 }
 
-// Finds our own summary comment (tagged with the hidden marker) across ALL comment pages. Issue
-// comments come back oldest-first, so our freshly-posted summary sits on the last page — a single
-// first-page fetch would miss it on busy PRs and post a duplicate. Returns the comment or null.
-async function findSummaryComment(api, prNumber, marker) {
-    for (let page = 1; page <= 10; page++) {
-        const res = await api(`/issues/${prNumber}/comments?per_page=100&page=${page}`);
-        if (!res.ok) return null;
-        const batch = await res.json();
-        const found = batch.find((c) => (c.body || '').includes(marker));
-        if (found) return found;
-        if (batch.length < 100) return null; // last page reached
-    }
-    return null;
-}
-
 async function main() {
     const args = parseArgs(process.argv.slice(2));
     const command = args._[0];
@@ -167,43 +152,25 @@ async function main() {
     // Post to the PR if asked.
     if (args.post) {
         if (!prNumber) fail('--post requires --pr <number>');
-        // Hidden marker (invisible in rendered markdown) that lets us find and update our own
-        // summary comment on re-runs instead of piling up a new one each time.
-        const marker = '<!-- reviewer-lib-summary -->';
-        const summary = `${report}\n\n${marker}`;
-        const inline = toReviewComments(findings);
+        const inline = toReviewComments(findings).map((c) => ({ ...c, side: 'RIGHT' }));
 
-        // 1. Post the summary FIRST so it sits above the inline comments. A conversation comment
-        //    isn't line-anchored, so GitHub can't mark it "outdated" — instead we UPSERT it: find
-        //    our previous summary (by the marker) and edit it in place, so the PR shows one current
-        //    summary rather than a stack of stale ones.
-        let updated = false;
-        const mine = await findSummaryComment(api, prNumber, marker);
-        if (mine) {
-            const res = await api(`/issues/comments/${mine.id}`, { method: 'PATCH', body: JSON.stringify({ body: summary }) });
-            updated = res.ok;
+        // Submit a single COMMENT review. This makes the bot appear in the PR's "Reviewers" as
+        // having commented (💬) — a COMMENT review never approves or requests changes, so it can't
+        // block the merge; you decide what to act on. The full report is the review body (summary on
+        // top), inline comments ride along, and anchoring to the head commit lets GitHub mark them
+        // "outdated" once a later commit changes the line.
+        const review = (body, comments) => api(`/pulls/${prNumber}/reviews`, {
+            method: 'POST',
+            body: JSON.stringify({ event: 'COMMENT', ...(commitId ? { commit_id: commitId } : {}), body, ...(comments ? { comments } : {}) }),
+        });
+        let res = await review(report, inline.length ? inline : undefined);
+        if (!res.ok && inline.length) {
+            // A rejected inline comment (e.g. a line not in the diff) fails the whole review — retry
+            // with just the summary so the report still lands.
+            console.error(`Review with inline comments rejected (${res.status}); posting the summary only.`);
+            res = await review(report);
         }
-        if (!updated) {
-            const res = await api(`/issues/${prNumber}/comments`, { method: 'POST', body: JSON.stringify({ body: summary }) });
-            if (!res.ok) fail(`failed to post summary comment (${res.status})`);
-        }
-
-        // 2. Inline comments, posted one by one (no review wrapper, so no placeholder body) and
-        //    anchored to the PR head commit so GitHub marks them "outdated" once a later commit
-        //    changes the line. A rejected comment (e.g. line not in the diff) is skipped, not fatal.
-        for (const c of inline) {
-            const res = await api(`/pulls/${prNumber}/comments`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    ...(commitId ? { commit_id: commitId } : {}),
-                    path: c.path,
-                    line: c.line,
-                    side: 'RIGHT',
-                    body: c.body,
-                }),
-            });
-            if (!res.ok) console.error(`Inline comment on ${c.path}:${c.line} rejected (${res.status}); it's still in the summary.`);
-        }
+        if (!res.ok) fail(`failed to post review (${res.status})`);
         console.log(`Posted review to PR #${prNumber}.`);
     }
 
