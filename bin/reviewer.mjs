@@ -75,6 +75,21 @@ function githubApi(repository, token) {
         });
 }
 
+// Finds our own summary comment (tagged with the hidden marker) across ALL comment pages. Issue
+// comments come back oldest-first, so our freshly-posted summary sits on the last page — a single
+// first-page fetch would miss it on busy PRs and post a duplicate. Returns the comment or null.
+async function findSummaryComment(api, prNumber, marker) {
+    for (let page = 1; page <= 10; page++) {
+        const res = await api(`/issues/${prNumber}/comments?per_page=100&page=${page}`);
+        if (!res.ok) return null;
+        const batch = await res.json();
+        const found = batch.find((c) => (c.body || '').includes(marker));
+        if (found) return found;
+        if (batch.length < 100) return null; // last page reached
+    }
+    return null;
+}
+
 async function main() {
     const args = parseArgs(process.argv.slice(2));
     const command = args._[0];
@@ -165,13 +180,10 @@ async function main() {
         // Instead we UPSERT: find our previous summary (by the marker) and edit it in place, so the
         // PR always shows one current summary rather than a stack of stale ones.
         let updated = false;
-        const list = await api(`/issues/${prNumber}/comments?per_page=100`);
-        if (list.ok) {
-            const mine = (await list.json()).find((c) => (c.body || '').includes(marker));
-            if (mine) {
-                const res = await api(`/issues/comments/${mine.id}`, { method: 'PATCH', body: JSON.stringify({ body: summary }) });
-                updated = res.ok;
-            }
+        const mine = await findSummaryComment(api, prNumber, marker);
+        if (mine) {
+            const res = await api(`/issues/comments/${mine.id}`, { method: 'PATCH', body: JSON.stringify({ body: summary }) });
+            updated = res.ok;
         }
         if (!updated) {
             const res = await api(`/issues/${prNumber}/comments`, { method: 'POST', body: JSON.stringify({ body: summary }) });
