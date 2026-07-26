@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.0.0] - 2026-07-26
 
+### Added
+- **Change overview above findings** — `--summary` (CLI) / `summary: 'true'` (GitHub Action) adds a
+  short "what changed" overview of the diff at the top of the review, above the findings (and in the
+  posted PR summary comment). New method `summarizeDiff(diff, { language })`. Opt-in — one extra call.
+
 ### ⚠ BREAKING CHANGES
 - **Default model changed to `o4-mini`** (was `gpt-4o-mini`), for both `new Reviewer()` and the
   GitHub Action's `model` input. `o4-mini` is a reasoning model with far fewer false positives

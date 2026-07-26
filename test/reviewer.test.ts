@@ -141,6 +141,18 @@ describe('generateDocumentation wrapping logic', () => {
     });
 });
 
+describe('summarizeDiff', () => {
+    it('returns a trimmed high-level overview and prompts for a change summary', async () => {
+        mocks.chatCreate.mockResolvedValue(okChat('  - Adds a helper\n- Fixes a bug  '));
+        const out = await new Reviewer('sk-test').summarizeDiff('diff --git a/x b/x\n+foo');
+
+        expect(out).toBe('- Adds a helper\n- Fixes a bug');
+        expect(mocks.chatCreate.mock.calls[0][0].messages[1].content).toContain(
+            'Summarize what the following pull-request diff changes',
+        );
+    });
+});
+
 describe('getCurrentModels', () => {
     it('returns the data array from the models endpoint', async () => {
         const models = [{ id: 'gpt-4', object: 'model', created: 1, owned_by: 'openai' }];
