@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `actions/create-github-app-token`) and posts the review under your App's identity (custom bot
   name + avatar) instead of `github-actions[bot]`. Leave them empty to keep using `github-token`.
 
+### Fixed
+- **PR review layout** — the summary comment now appears **above** the inline comments, and the
+  placeholder review body ("🤖 reviewer-lib — inline notes…") is gone. Inline comments are posted
+  individually (anchored to the head commit, so they still go _outdated_ on push) and the summary is
+  upserted first, so the report reads top-to-bottom with no filler.
+
 ## [4.1.0] - 2026-07-26
 
 ### Added
