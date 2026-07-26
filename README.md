@@ -91,35 +91,57 @@ npx reviewer-lib review --pr 54 --post --fail-on high
 ```
 
 Flags: `--diff <file>`, `--pr <number>`, `--post`, `--code`, `--lang <language>`,
-`--filter`, `--cache-dir <dir>`, `--exclude <globs>`, `--model <name>`, `--format text|json`,
-`--fail-on <severity>`, `--api-key <key>`, `--timeout <ms>`, `--max-retries <n>`.
+`--filter`, `--summary` (add a "what changed" overview above the findings), `--cache-dir <dir>`,
+`--exclude <globs>`, `--model <name>`, `--format text|json`, `--fail-on <severity>`,
+`--api-key <key>`, `--timeout <ms>`, `--max-retries <n>`.
 Run `npx reviewer-lib --help` for details.
 
 ### Use as a GitHub Action
-Add AI review to any repository in a few lines. The action reads the PR diff and posts
+Add AI review to any repository. The action reads the PR diff (no checkout needed) and posts
 inline comments plus a summary. Add `OPENAI_API_KEY` to the repo secrets and give the job
-`pull-requests: write` permission:
+`pull-requests: write` permission.
+
+**Recommended config** — request-only (add the `ai-review` label to a PR, or run it manually),
+with the reasoning model, a change overview, a severity gate, and noise excluded:
 
 ```yaml
 name: AI code review
+
 on:
   pull_request:
+    types: [labeled]        # runs when you add a label (below) — not on every push
+  workflow_dispatch:        # …or trigger manually from the Actions tab
+    inputs:
+      pr:
+        description: PR number to review
+        required: true
 
 permissions:
+  contents: read
   pull-requests: write
 
 jobs:
   review:
+    # only run for the "ai-review" label (or a manual dispatch)
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'ai-review'
     runs-on: ubuntu-latest
     steps:
       - uses: JuliettKhar/reviewer-lib@v3
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          fail-on: high        # optional: fail the check on high+ findings
+          pr-number: ${{ github.event.inputs.pr || github.event.pull_request.number }}
+          model: o4-mini          # reasoning model — fewest false positives (default)
+          summary: 'true'         # add a "what changed" overview above the findings
+          fail-on: high           # fail the check only on high+ findings
+          exclude: '*.md,dist/**,tsconfig.json'   # skip docs/build/config noise
 ```
 
+Prefer reviewing **every** PR automatically? Use `on: pull_request:` (no `types`/`if`) instead of
+the label trigger — just note it spends a review on each push.
+
 Inputs: `openai-api-key` (required), `github-token` (default `${{ github.token }}`),
-`pr-number` (defaults to the event's PR), `fail-on`, `model` (default `o4-mini`; pass `gpt-4o-mini` for a cheaper review),
+`pr-number` (defaults to the event's PR), `fail-on`, `model` (default `o4-mini`; pass `gpt-4o-mini`
+for a cheaper, noisier review), `summary` (`'true'` adds a "what changed" overview),
 `version` (reviewer-lib version to run, default `latest`), `exclude` (extra comma-separated
 path globs to skip; lockfiles and `dist/` are skipped by default).
 

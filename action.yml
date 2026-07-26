@@ -33,6 +33,10 @@ inputs:
     description: 'Extra comma-separated path globs to skip (lockfiles + dist/ are skipped by default).'
     required: false
     default: ''
+  summary:
+    description: 'Add a short "what changed" overview above the findings (one extra model call). Set to "true" to enable.'
+    required: false
+    default: 'false'
 
 runs:
   using: 'composite'
@@ -58,4 +62,5 @@ runs:
         ARGS=(review --pr "$PR" --post --model "${{ inputs.model }}")
         if [ -n "${{ inputs.fail-on }}" ]; then ARGS+=(--fail-on "${{ inputs.fail-on }}"); fi
         if [ -n "${{ inputs.exclude }}" ]; then ARGS+=(--exclude "${{ inputs.exclude }}"); fi
+        if [ "${{ inputs.summary }}" = "true" ]; then ARGS+=(--summary); fi
         npx --yes "reviewer-lib@${{ inputs.version }}" "${ARGS[@]}"

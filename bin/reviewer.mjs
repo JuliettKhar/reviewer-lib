@@ -21,6 +21,7 @@ Options:
   --code             Treat the input as raw code instead of a diff
   --lang <language>  Hint the source language (e.g. typescript, python)
   --filter           Second-pass triage: drop low-value/defensive findings
+  --summary          Add a short "what changed" overview above the findings (one extra call)
   --filter-model <m> Model for the triage pass (default: same as --model; use a stronger one)
   --cache-dir <dir>  Cache results by content hash in <dir> (skip re-reviewing unchanged input)
   --exclude <globs>  Extra comma-separated path globs to skip (lockfiles + dist/ are skipped by default)
@@ -147,9 +148,21 @@ async function main() {
     }
     const findings = await reviewer.review(input, reviewOptions);
 
+    // Optional: a short overview of what the diff changes, shown ABOVE the findings (one extra call).
+    let overview = '';
+    if (args.summary && !args.code) {
+        try {
+            const text = await reviewer.summarizeDiff(input, { language: args.lang });
+            if (text) overview = `## What changed\n\n${text}\n\n---\n\n`;
+        } catch (e) {
+            console.error(`Warning: change summary failed (${e?.message || e}); showing findings only.`);
+        }
+    }
+    const report = `${overview}${formatFindings(findings)}`;
+
     // Output.
     if (args.format === 'json') console.log(JSON.stringify(findings, null, 2));
-    else console.log(formatFindings(findings));
+    else console.log(report);
 
     // Post to the PR if asked.
     if (args.post) {
@@ -157,7 +170,7 @@ async function main() {
         // Hidden marker (invisible in rendered markdown) that lets us find and update our own
         // summary comment on re-runs instead of piling up a new one each time.
         const marker = '<!-- reviewer-lib-summary -->';
-        const summary = `${formatFindings(findings)}\n\n${marker}`;
+        const summary = `${report}\n\n${marker}`;
         const inline = toReviewComments(findings).map((c) => ({ ...c, side: 'RIGHT' }));
 
         // Inline comments go as a review — GitHub marks them "outdated" automatically once a later

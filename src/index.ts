@@ -12,7 +12,8 @@ import {
     SYSTEM_PROMPT,
     REVIEW_SYSTEM_PROMPT,
     FILTER_SYSTEM_PROMPT,
-    buildReviewPrompt
+    buildReviewPrompt,
+    buildChangeSummaryPrompt
 } from "./utils/prompts";
 import { defaultOptions } from './utils/default-options';
 import { Finding, REVIEW_SCHEMA, FILTER_SCHEMA } from './utils/review';
@@ -127,6 +128,13 @@ class Reviewer {
 
     async submitCode(code: string): Promise<string | undefined> {
         return this.complete(generateSubmitCodePrompt(code));
+    }
+
+    // Short, high-level overview of what a diff changes (intent/behaviour, not findings) — meant to
+    // sit above the review findings in a PR summary comment. One extra model call.
+    async summarizeDiff(input: string, options: { language?: string } = {}): Promise<string> {
+        const text = await this.complete(buildChangeSummaryPrompt(input, options.language));
+        return text.trim();
     }
 
     async submitCodeAssistanceMode(code: string): Promise<string | undefined> {

@@ -51,6 +51,16 @@ export const buildReviewPrompt = (input: string, asDiff = false, language?: stri
           `null since no file context is available.\n\n${input}`;
 };
 
+// Builds the user message for summarizeDiff(): a short, high-level overview of what a diff changes
+// (intent/behaviour, not a line-by-line list) to sit above the findings in a PR summary comment.
+export const buildChangeSummaryPrompt = (diff: string, language?: string) => {
+    const lang = language ? `The code is written in ${language}. ` : '';
+    return `${lang}Summarize what the following pull-request diff changes, as 2-5 short markdown ` +
+        'bullets. Describe intent and behaviour at a high level, not a line-by-line list. Be concise ' +
+        'and factual; do not review, judge, or suggest improvements.' +
+        `\n\n${diff}`;
+};
+
 export const generateDocumentationPrompt = (code: string) => `
     Generate detailed JSDoc documentation for the following code snippet. Only include documentation if the code contains functions, classes, or other elements that require JSDoc annotations. If there is nothing to document, return "No documentation needed".
 
