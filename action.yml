@@ -37,6 +37,14 @@ inputs:
     description: 'Add a short "what changed" overview above the findings (one extra model call). Set to "true" to enable.'
     required: false
     default: 'false'
+  app-id:
+    description: 'GitHub App ID. Set this together with app-private-key to post comments as your own App (custom bot name + avatar) instead of github-actions[bot]. Leave empty to use github-token.'
+    required: false
+    default: ''
+  app-private-key:
+    description: 'GitHub App private key (PEM contents). Pair with app-id. Store it as a secret.'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -46,11 +54,22 @@ runs:
       with:
         node-version: '20'
 
+    # Optional: mint an installation token for a GitHub App so comments are posted under the
+    # App's identity (custom name + avatar). Skipped unless both app-id and app-private-key are set.
+    - name: Generate GitHub App token
+      id: app-token
+      if: ${{ inputs.app-id != '' && inputs.app-private-key != '' }}
+      uses: actions/create-github-app-token@v1
+      with:
+        app-id: ${{ inputs.app-id }}
+        private-key: ${{ inputs.app-private-key }}
+
     - name: Run reviewer-lib
       shell: bash
       env:
         OPENAI_API_KEY: ${{ inputs.openai-api-key }}
-        GITHUB_TOKEN: ${{ inputs.github-token }}
+        # Prefer the App token when present; otherwise fall back to the github-token input.
+        GITHUB_TOKEN: ${{ steps.app-token.outputs.token || inputs.github-token }}
         GITHUB_REPOSITORY: ${{ github.repository }}
       run: |
         PR="${{ inputs.pr-number }}"

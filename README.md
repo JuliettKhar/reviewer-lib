@@ -145,7 +145,9 @@ Inputs: `openai-api-key` (required), `github-token` (default `${{ github.token }
 `pr-number` (defaults to the event's PR), `fail-on`, `model` (default `o4-mini`; pass `gpt-4o-mini`
 for a cheaper, noisier review), `summary` (`'true'` adds a "what changed" overview),
 `version` (reviewer-lib version to run, default `latest`), `exclude` (extra comma-separated
-path globs to skip; lockfiles and `dist/` are skipped by default).
+path globs to skip; lockfiles and `dist/` are skipped by default), `app-id` + `app-private-key`
+(post comments as your own GitHub App instead of `github-actions[bot]` — see the
+[docs](https://juliettkhar.github.io/reviewer-lib/guide/github-action.html#post-as-your-own-github-app)).
 
 To trigger it manually instead, use `workflow_dispatch` and pass `pr-number`.
 

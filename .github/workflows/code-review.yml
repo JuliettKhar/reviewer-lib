@@ -33,5 +33,9 @@ jobs:
           fail-on: ${{ inputs.fail_on }}
           model: o4-mini # reasoning model — far fewer defensive false positives (eval: noise 0/4)
           summary: 'true' # add a "what changed" overview above the findings
+          # Post as our own GitHub App (app-ai-reviewer) instead of github-actions[bot].
+          # Falls back to github-token automatically if these secrets are absent.
+          app-id: ${{ secrets.REVIEWER_APP_ID }}
+          app-private-key: ${{ secrets.REVIEWER_APP_PRIVATE_KEY }}
           # This repo's noise: eval cases (intentional bugs), docs, workflow/config, images.
           exclude: 'evals/**,*.md,.github/**,tsconfig.json,*.png'
