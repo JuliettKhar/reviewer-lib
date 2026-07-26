@@ -105,8 +105,9 @@ class Reviewer {
             const merged: Record<string, any> = { ...this.modelOptions, ...overrides };
             let tuning: Record<string, any>;
             if (isReasoning) {
-                const { temperature, top_p, frequency_penalty, presence_penalty, max_tokens, ...safe } = merged;
-                tuning = { max_completion_tokens: Math.max(this.maxTokens, 8000), ...safe };
+                // Drop max_completion_tokens too, so an override can't clobber the reasoning floor below.
+                const { temperature, top_p, frequency_penalty, presence_penalty, max_tokens, max_completion_tokens, ...safe } = merged;
+                tuning = { ...safe, max_completion_tokens: Math.max(this.maxTokens, 8000) };
             } else {
                 tuning = { max_tokens: this.maxTokens, ...merged };
             }
