@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.0] - 2026-07-26
+
+### Changed
+- **The review is submitted as a single "commented" review**, so the bot now shows up in the PR's
+  **Reviewers** list (💬 commented). A COMMENT review never approves or requests changes — it can't
+  block the merge; you decide what to act on. The report (with the optional `--summary` overview) is
+  the review body and inline comments ride along, anchored to the head commit so they still go
+  _outdated_ on push. (Replaces the separate summary comment + individual inline comments from 4.2.0.)
+
 ## [4.2.0] - 2026-07-26
 
 ### Added
@@ -226,6 +235,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI now runs on Node 20 and executes the test suite on every pull request.
 - Dependabot groups minor/patch updates into a single PR and now also covers GitHub Actions.
 
+[4.3.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v4.3.0
 [4.2.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v4.2.0
 [4.1.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v4.1.0
 [4.0.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v4.0.0
