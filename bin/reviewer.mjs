@@ -171,27 +171,12 @@ async function main() {
         // summary comment on re-runs instead of piling up a new one each time.
         const marker = '<!-- reviewer-lib-summary -->';
         const summary = `${report}\n\n${marker}`;
-        const inline = toReviewComments(findings).map((c) => ({ ...c, side: 'RIGHT' }));
+        const inline = toReviewComments(findings);
 
-        // Inline comments go as a review — GitHub marks them "outdated" automatically once a later
-        // commit changes the line they anchor to. (Keep the review body short; the full report is
-        // the upserted summary comment below.)
-        if (inline.length > 0) {
-            const res = await api(`/pulls/${prNumber}/reviews`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    event: 'COMMENT',
-                    ...(commitId ? { commit_id: commitId } : {}),
-                    body: '🤖 reviewer-lib — inline notes; full report in the summary comment.',
-                    comments: inline,
-                }),
-            });
-            if (!res.ok) console.error(`Inline review rejected (${res.status}); findings remain in the summary comment.`);
-        }
-
-        // Summary — a conversation comment isn't line-anchored, so GitHub can't mark it "outdated".
-        // Instead we UPSERT: find our previous summary (by the marker) and edit it in place, so the
-        // PR always shows one current summary rather than a stack of stale ones.
+        // 1. Post the summary FIRST so it sits above the inline comments. A conversation comment
+        //    isn't line-anchored, so GitHub can't mark it "outdated" — instead we UPSERT it: find
+        //    our previous summary (by the marker) and edit it in place, so the PR shows one current
+        //    summary rather than a stack of stale ones.
         let updated = false;
         const mine = await findSummaryComment(api, prNumber, marker);
         if (mine) {
@@ -201,6 +186,23 @@ async function main() {
         if (!updated) {
             const res = await api(`/issues/${prNumber}/comments`, { method: 'POST', body: JSON.stringify({ body: summary }) });
             if (!res.ok) fail(`failed to post summary comment (${res.status})`);
+        }
+
+        // 2. Inline comments, posted one by one (no review wrapper, so no placeholder body) and
+        //    anchored to the PR head commit so GitHub marks them "outdated" once a later commit
+        //    changes the line. A rejected comment (e.g. line not in the diff) is skipped, not fatal.
+        for (const c of inline) {
+            const res = await api(`/pulls/${prNumber}/comments`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    ...(commitId ? { commit_id: commitId } : {}),
+                    path: c.path,
+                    line: c.line,
+                    side: 'RIGHT',
+                    body: c.body,
+                }),
+            });
+            if (!res.ok) console.error(`Inline comment on ${c.path}:${c.line} rejected (${res.status}); it's still in the summary.`);
         }
         console.log(`Posted review to PR #${prNumber}.`);
     }
