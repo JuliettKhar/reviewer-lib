@@ -181,8 +181,8 @@ describe('review() structured output', () => {
 
         await new Reviewer('sk-test').review('code', { filter: true, filterModel: 'gpt-4o' });
 
-        expect(mocks.chatCreate.mock.calls[0][0].model).toBe('gpt-4o-mini'); // review
-        expect(mocks.chatCreate.mock.calls[1][0].model).toBe('gpt-4o');      // triage
+        expect(mocks.chatCreate.mock.calls[0][0].model).toBe('o4-mini'); // review (default)
+        expect(mocks.chatCreate.mock.calls[1][0].model).toBe('gpt-4o');  // triage
     });
 });
 

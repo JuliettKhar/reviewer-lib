@@ -4,6 +4,33 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-07-26
+
+### ⚠ BREAKING CHANGES
+- **Default model changed to `o4-mini`** (was `gpt-4o-mini`), for both `new Reviewer()` and the
+  GitHub Action's `model` input. `o4-mini` is a reasoning model with far fewer false positives
+  (in the eval: noise 0/4 where `gpt-4o-mini` adds low-severity defensive nits), at a higher
+  per-token cost and some added latency from reasoning tokens. A PR review is infrequent, so the
+  absolute cost stays small — but if you want the previous cheaper, noisier behaviour, pass
+  `gpt-4o-mini` explicitly (`--model gpt-4o-mini`, or the action's `model:` input).
+
+### Changed
+- **Text-generation methods are now reasoning-safe.** `submitCode`, `optimizeCode`,
+  `generateDocumentation`, etc. previously sent sampling params (`temperature`, `top_p`,
+  `frequency_penalty`, `presence_penalty`) that o-series/gpt-5.x models reject — a latent bug now
+  that a reasoning model is the default. Those params are stripped for reasoning models (from both
+  the base options and per-call overrides), and `max_completion_tokens` is floored (8000) so hidden
+  reasoning tokens don't starve the output.
+
+### Fixed
+- **Inline PR comments now go "outdated" on push.** The review is anchored to the PR head commit
+  (`commit_id`), so GitHub collapses / marks a comment outdated once a later commit changes the line
+  it points to. Previously no anchor commit was sent, so comments stayed active after fixes.
+- **The summary comment no longer piles up.** `--post` now upserts a single summary conversation
+  comment — it finds the previous one by a hidden marker and edits it in place instead of posting a
+  fresh copy on every run. (A conversation comment isn't line-anchored, so GitHub can't mark it
+  outdated; editing keeps it current.)
+
 ## [3.7.2] - 2026-07-24
 
 ### Fixed
@@ -178,6 +205,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI now runs on Node 20 and executes the test suite on every pull request.
 - Dependabot groups minor/patch updates into a single PR and now also covers GitHub Actions.
 
+[4.0.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v4.0.0
 [3.7.2]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.7.2
 [3.7.1]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.7.1
 [3.7.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.7.0

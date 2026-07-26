@@ -22,9 +22,9 @@ inputs:
     required: false
     default: ''
   model:
-    description: 'Model to use for the review.'
+    description: 'Model to use for the review. Default is a reasoning model (o4-mini) for the fewest false positives; pass e.g. gpt-4o-mini for a cheaper, noisier review.'
     required: false
-    default: 'gpt-4o-mini'
+    default: 'o4-mini'
   version:
     description: 'reviewer-lib version to run (npm dist-tag or version). Must be >= 3.2.0 (the CLI).'
     required: false
