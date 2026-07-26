@@ -4,12 +4,14 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [4.0.0] - 2026-07-26
+## [4.1.0] - 2026-07-26
 
 ### Added
 - **Change overview above findings** — `--summary` (CLI) / `summary: 'true'` (GitHub Action) adds a
-  short "what changed" overview of the diff at the top of the review, above the findings (and in the
+  short "what changed" overview of the diff at the top of the review, above the findings (in the same
   posted PR summary comment). New method `summarizeDiff(diff, { language })`. Opt-in — one extra call.
+
+## [4.0.0] - 2026-07-26
 
 ### ⚠ BREAKING CHANGES
 - **Default model changed to `o4-mini`** (was `gpt-4o-mini`), for both `new Reviewer()` and the
@@ -210,6 +212,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI now runs on Node 20 and executes the test suite on every pull request.
 - Dependabot groups minor/patch updates into a single PR and now also covers GitHub Actions.
 
+[4.1.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v4.1.0
 [4.0.0]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v4.0.0
 [3.7.2]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.7.2
 [3.7.1]: https://github.com/JuliettKhar/reviewer-lib/releases/tag/v3.7.1
