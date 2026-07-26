@@ -52,7 +52,7 @@ class Reviewer {
 
     constructor(
         apiKey: string,
-        model = 'gpt-4o-mini',
+        model = 'o4-mini',
         maxTokens = 1500,
         defaultClassOptions: IDefaultOptions = defaultOptions,
         clientOptions: IClientOptions = {},
@@ -97,19 +97,26 @@ class Reviewer {
                 return response.choices[0]?.text ?? '';
             }
 
-            // Reasoning models (o1/o3/…) use `max_completion_tokens` and reject `temperature`/`top_p`.
+            // Reasoning models (o-series/gpt-5.x) reject sampling params (temperature/top_p/
+            // frequency_penalty/presence_penalty) and use `max_completion_tokens` — which needs a
+            // floor so hidden reasoning tokens don't starve the answer. Sanitize both the base
+            // options and any per-call overrides so those params never reach a reasoning model.
             const isReasoning = this.isReasoning();
-            const { temperature, top_p, ...reasoningSafeOptions } = this.modelOptions;
+            const merged: Record<string, any> = { ...this.modelOptions, ...overrides };
+            let tuning: Record<string, any>;
+            if (isReasoning) {
+                const { temperature, top_p, frequency_penalty, presence_penalty, max_tokens, ...safe } = merged;
+                tuning = { max_completion_tokens: Math.max(this.maxTokens, 8000), ...safe };
+            } else {
+                tuning = { max_tokens: this.maxTokens, ...merged };
+            }
             const response = await this.client.chat.completions.create({
                 model: this.model,
                 messages: [
                     { role: 'system' as const, content: SYSTEM_PROMPT },
                     { role: 'user' as const, content: userPrompt },
                 ],
-                ...(isReasoning
-                    ? { max_completion_tokens: this.maxTokens, ...reasoningSafeOptions }
-                    : { max_tokens: this.maxTokens, ...this.modelOptions }),
-                ...overrides,
+                ...tuning,
             });
             return response.choices[0]?.message?.content ?? '';
         } catch (error: any) {

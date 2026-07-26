@@ -2,7 +2,7 @@
 // Runs the LOCAL build (dist/) so it reflects your current prompts, calls review() per case,
 // and prints recall (bugs found) + noise (false positives on clean code).
 //
-// Manual, paid: one gpt-4o-mini call per case. Run after changing the prompt/model:
+// Manual, paid: one review() call per case on the default model (o4-mini). Run after changing the prompt/model:
 //   npm run eval
 import pkg from '../dist/index.js';
 import { cases } from './cases.mjs';
@@ -69,7 +69,7 @@ for (const testCase of cases) {
 
 console.log('\n' + rows.join('\n'));
 console.log('─'.repeat(42));
-console.log(`model:   ${MODEL || 'gpt-4o-mini (default)'}`);
+console.log(`model:   ${MODEL || 'o4-mini (default)'}`);
 console.log(`mode:    ${FILTER ? `with second-pass filter${FILTER_MODEL ? ` (judge: ${FILTER_MODEL})` : ''}` : 'baseline'}`);
 console.log(`recall:  ${bugsCaught}/${bugsTotal} planted bugs found`);
 console.log(`noise:   ${cleanTotal - cleanPass} false positive(s) on ${cleanTotal} clean cases`);

@@ -48,13 +48,15 @@ describe('Reviewer constructor', () => {
         );
     });
 
-    it('applies default model (gpt-4o-mini) and maxTokens (1500)', async () => {
+    it('applies default model (o4-mini, a reasoning model) with a floored completion budget', async () => {
         mocks.chatCreate.mockResolvedValue(okChat('ok'));
         await new Reviewer('sk-test').submitCode('code');
 
-        expect(mocks.chatCreate).toHaveBeenCalledWith(
-            expect.objectContaining({ model: 'gpt-4o-mini', max_tokens: 1500 }),
-        );
+        const arg = mocks.chatCreate.mock.calls[0][0];
+        expect(arg.model).toBe('o4-mini');
+        expect(arg.max_completion_tokens).toBe(8000); // reasoning floor so the answer isn't starved
+        expect(arg.max_tokens).toBeUndefined();
+        expect(arg.temperature).toBeUndefined();       // sampling params stripped for reasoning models
     });
 
     it('honours custom model and maxTokens', async () => {
@@ -100,13 +102,13 @@ describe('Instruct routing (backward compatibility)', () => {
 
 describe('reasoning models (o-series + gpt-5.x)', () => {
     it.each(['o3-mini', 'gpt-5.1', 'gpt-5.2-codex'])(
-        '%s sends max_completion_tokens and omits temperature/max_tokens',
+        '%s sends a floored max_completion_tokens and omits temperature/max_tokens',
         async (model) => {
             mocks.chatCreate.mockResolvedValue(okChat('ok'));
             await new Reviewer('sk-test', model).submitCode('code');
 
             const arg = mocks.chatCreate.mock.calls[0][0];
-            expect(arg.max_completion_tokens).toBe(1500);
+            expect(arg.max_completion_tokens).toBe(8000); // reasoning floor (maxTokens 1500 → 8000)
             expect(arg.max_tokens).toBeUndefined();
             expect(arg.temperature).toBeUndefined();
         },

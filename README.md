@@ -25,11 +25,14 @@ Three ways to use it:
 - **Text methods** (`submitCodeAssistanceMode`, `optimizeCode`, `securityAnalysis`, …) — plain-text feedback.
 - **CLI & GitHub Action** — no code to write (see below).
 
-By default the library uses the OpenAI **Chat Completions** API with `gpt-4o-mini`; pass any chat
-model as the `model` argument. Instruct models (`*-instruct`) are auto-routed to the legacy
-Completions API, and reasoning models (o-series, gpt-5.x) are handled automatically.
+By default the library uses the OpenAI **Chat Completions** API with **`o4-mini`** — a reasoning
+model chosen for the fewest false positives. Pass any chat model as the `model` argument. Instruct
+models (`*-instruct`) are auto-routed to the legacy Completions API, and reasoning models (o-series,
+gpt-5.x) are handled automatically.
 
-> **Tip:** for the fewest false positives, use a reasoning model like `o4-mini` (`--model o4-mini`).
+> **Tip:** for a cheaper, faster review (with more low-severity noise) pass `gpt-4o-mini`
+> (`--model gpt-4o-mini`). `o4-mini` costs more per token and adds latency from reasoning tokens,
+> but a PR review is infrequent so the absolute cost stays small.
 
 ### Structured review (`review`)
 `review()` returns typed findings instead of free text (chat models only), ready for
@@ -38,7 +41,7 @@ inline PR comments or a CI gate — this is the recommended entry point:
 ```typescript
 import { Reviewer, formatFindings, toReviewComments, hasBlockingFindings } from 'reviewer-lib';
 
-const reviewer = new Reviewer(apiKey); // default model: gpt-4o-mini
+const reviewer = new Reviewer(apiKey); // default model: o4-mini (reasoning; fewest false positives)
 
 // Pass asDiff: true to review a unified diff — findings then carry file + line.
 // Optionally hint the language with `language` (e.g. 'typescript', 'python').
@@ -116,7 +119,7 @@ jobs:
 ```
 
 Inputs: `openai-api-key` (required), `github-token` (default `${{ github.token }}`),
-`pr-number` (defaults to the event's PR), `fail-on`, `model` (default `gpt-4o-mini`),
+`pr-number` (defaults to the event's PR), `fail-on`, `model` (default `o4-mini`; pass `gpt-4o-mini` for a cheaper review),
 `version` (reviewer-lib version to run, default `latest`), `exclude` (extra comma-separated
 path globs to skip; lockfiles and `dist/` are skipped by default).
 
@@ -168,7 +171,7 @@ git diff -U30 origin/main...HEAD | npx reviewer-lib review --fail-on high || {
 
 **Constructor params**
 - `apiKey` (string): your OpenAI API key.
-- `model` (string): model to use (default `gpt-4o-mini`). Instruct models (`*-instruct`) route to the legacy Completions API automatically.
+- `model` (string): model to use (default `o4-mini`, a reasoning model with the fewest false positives; pass `gpt-4o-mini` for a cheaper, noisier review). Instruct models (`*-instruct`) route to the legacy Completions API automatically.
 - `maxTokens` (number): max tokens for the response (default 1500).
 - `modelOptions` (object): sampling options sent to the model — `temperature`, `top_p`, `frequency_penalty`, `presence_penalty`, `n`, `stop`.
 - `clientOptions` (object): reliability — `maxRetries` (default 3) and `timeout` in ms (default 120000). The SDK retries transient failures (429/5xx) with exponential backoff automatically.

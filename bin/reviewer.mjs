@@ -24,7 +24,7 @@ Options:
   --filter-model <m> Model for the triage pass (default: same as --model; use a stronger one)
   --cache-dir <dir>  Cache results by content hash in <dir> (skip re-reviewing unchanged input)
   --exclude <globs>  Extra comma-separated path globs to skip (lockfiles + dist/ are skipped by default)
-  --model <name>     Model to use (default: gpt-4o-mini)
+  --model <name>     Model to use (default: o4-mini; pass gpt-4o-mini for a cheaper, noisier review)
   --format <fmt>     Output format: text (default) | json
   --fail-on <sev>    Exit 1 if any finding is >= severity (critical|high|medium|low)
   --post             Post the review to the PR (requires --pr)
@@ -90,6 +90,7 @@ async function main() {
 
     let api;
     let prNumber;
+    let commitId; // PR head SHA — pinning it lets GitHub mark inline comments "outdated" on later pushes
 
     // Resolve the input diff/code.
     let input;
@@ -99,6 +100,10 @@ async function main() {
         const res = await api(`/pulls/${prNumber}`, { accept: 'application/vnd.github.v3.diff' });
         if (!res.ok) fail(`failed to fetch PR #${prNumber} diff (${res.status})`);
         input = await res.text();
+        // Fetch the PR head SHA so the review is anchored to the exact commit it reviewed; without
+        // this, GitHub can't reliably re-map (and collapse) inline comments when you push a fix.
+        const meta = await api(`/pulls/${prNumber}`);
+        if (meta.ok) commitId = (await meta.json())?.head?.sha;
     } else if (args.diff) {
         input = readFileSync(args.diff, 'utf8');
     } else {
@@ -134,23 +139,43 @@ async function main() {
     // Post to the PR if asked.
     if (args.post) {
         if (!prNumber) fail('--post requires --pr <number>');
-        const summary = formatFindings(findings);
+        // Hidden marker (invisible in rendered markdown) that lets us find and update our own
+        // summary comment on re-runs instead of piling up a new one each time.
+        const marker = '<!-- reviewer-lib-summary -->';
+        const summary = `${formatFindings(findings)}\n\n${marker}`;
         const inline = toReviewComments(findings).map((c) => ({ ...c, side: 'RIGHT' }));
-        let posted = false;
+
+        // Inline comments go as a review — GitHub marks them "outdated" automatically once a later
+        // commit changes the line they anchor to. (Keep the review body short; the full report is
+        // the upserted summary comment below.)
         if (inline.length > 0) {
             const res = await api(`/pulls/${prNumber}/reviews`, {
                 method: 'POST',
-                body: JSON.stringify({ event: 'COMMENT', body: summary, comments: inline }),
+                body: JSON.stringify({
+                    event: 'COMMENT',
+                    ...(commitId ? { commit_id: commitId } : {}),
+                    body: '🤖 reviewer-lib — inline notes; full report in the summary comment.',
+                    comments: inline,
+                }),
             });
-            posted = res.ok;
-            if (!res.ok) console.error(`Inline review rejected (${res.status}); posting a summary comment instead.`);
+            if (!res.ok) console.error(`Inline review rejected (${res.status}); findings remain in the summary comment.`);
         }
-        if (!posted) {
-            const res = await api(`/issues/${prNumber}/comments`, {
-                method: 'POST',
-                body: JSON.stringify({ body: summary }),
-            });
-            if (!res.ok) fail(`failed to post comment (${res.status})`);
+
+        // Summary — a conversation comment isn't line-anchored, so GitHub can't mark it "outdated".
+        // Instead we UPSERT: find our previous summary (by the marker) and edit it in place, so the
+        // PR always shows one current summary rather than a stack of stale ones.
+        let updated = false;
+        const list = await api(`/issues/${prNumber}/comments?per_page=100`);
+        if (list.ok) {
+            const mine = (await list.json()).find((c) => (c.body || '').includes(marker));
+            if (mine) {
+                const res = await api(`/issues/comments/${mine.id}`, { method: 'PATCH', body: JSON.stringify({ body: summary }) });
+                updated = res.ok;
+            }
+        }
+        if (!updated) {
+            const res = await api(`/issues/${prNumber}/comments`, { method: 'POST', body: JSON.stringify({ body: summary }) });
+            if (!res.ok) fail(`failed to post summary comment (${res.status})`);
         }
         console.log(`Posted review to PR #${prNumber}.`);
     }
