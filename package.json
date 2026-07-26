@@ -36,6 +36,9 @@
     "review:local": "printf 'function add(a, b) { return a - b; }' | node --env-file=.env review-helper.mjs",
     "review": "npm run build && git diff -U30 HEAD | node --env-file=.env bin/reviewer.mjs review",
     "eval": "npm run build && node --env-file=.env evals/run.mjs",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
     "prepublishOnly": "npm run build && npm run test"
   },
   "repository": {
@@ -52,6 +55,7 @@
     "reviewer-lib-published": "npm:reviewer-lib@^3.1.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
+    "vitepress": "^1.6.4",
     "vitest": "^4.1.10"
   },
   "dependencies": {
