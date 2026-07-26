@@ -4,6 +4,8 @@ structured, actionable findings — use it as a library, a CLI, or a GitHub Acti
 
 Works with code in any language (Node is only needed to run it).
 
+📖 **[Documentation](https://juliettkhar.github.io/reviewer-lib/)** — guides, CLI, GitHub Action, recipes, and the API reference.
+
 [//]: # (![Forks]&#40;https://img.shields.io/github/forks/JuliettKhar/reviewer-lib&#41;)
 [//]: # (![Stars]&#40;https://img.shields.io/github/stars/JuliettKhar/reviewer-lib&#41;)
 [//]: # (![Coverage]&#40;https://img.shields.io/codecov/c/github/JuliettKhar/reviewer-lib&#41;)
